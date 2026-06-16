@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: 'OSRS Dashboards'
+    orgId: 1
+    folder: 'OSRS Market'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/files
