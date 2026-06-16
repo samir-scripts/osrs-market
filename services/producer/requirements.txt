@@ -5,3 +5,4 @@ confluent-kafka>=2.2.0
 fastavro>=1.8.0
 prometheus-fastapi-instrumentator>=6.1.0
 httpx>=0.24.0
+authlib>=1.2.0
