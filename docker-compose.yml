@@ -165,9 +165,16 @@ services:
   spark:
     image: apache/spark:3.5.0
     container_name: osrs-spark
+    user: root
     environment:
-      - SPARK_MODE=master
-      - SPARK_MASTER_URL=local[*]
+      - REDPANDA_BROKERS=redpanda:29092
+      - POSTGRES_HOST=osrs-postgres
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     ports:
       - "8888:8080" # Spark UI
       - "7077:7077" # Spark Master port
@@ -181,6 +188,10 @@ services:
         condition: service_healthy
       redpanda:
         condition: service_healthy
+    command: >
+      /opt/spark/bin/spark-submit
+      --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,org.apache.spark:spark-avro_2.12:3.5.0,org.postgresql:postgresql:42.6.0,org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262
+      /opt/spark/jobs/price_stream.py
 
   # --- Hasura GraphQL Engine ---
   hasura:

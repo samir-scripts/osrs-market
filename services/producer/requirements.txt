@@ -4,3 +4,4 @@ requests>=2.31.0
 confluent-kafka>=2.2.0
 fastavro>=1.8.0
 prometheus-fastapi-instrumentator>=6.1.0
+httpx>=0.24.0
