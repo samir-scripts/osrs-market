@@ -164,7 +164,7 @@ services:
 
   # --- Apache Spark (Local Mode) ---
   spark:
-    image: bitnami/spark:3.5
+    image: bitnami/spark:latest
     container_name: osrs-spark
     environment:
       - SPARK_MODE=master
