@@ -127,9 +127,9 @@ export default function PriceChart({ itemId, itemName }: { itemId: number; itemN
               <Tooltip
                 contentStyle={OSRS_CHART_THEME.tooltip.contentStyle}
                 labelFormatter={(label) => `Time: ${formatDate(Number(label))}`}
-                formatter={(value: any, name: string) => {
-                  if (name.includes('Price')) return [`${Number(value).toLocaleString()} gp`, name];
-                  return [Number(value).toLocaleString(), name];
+                formatter={(value: any, name: any) => {
+                  if (name && name.includes('Price')) return [`${Number(value).toLocaleString()} gp`, name];
+                  return [Number(value).toLocaleString(), name || ''];
                 }}
               />
               <Legend verticalAlign="top" height={36} wrapperStyle={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: '11px' }} />

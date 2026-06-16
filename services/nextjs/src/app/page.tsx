@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ApolloProvider, useSubscription, gql, useMutation } from '@apollo/client';
+import { ApolloProvider, useSubscription, useMutation } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 import { client } from '../lib/apollo-client';
 import ItemSidebar from '../components/ItemSidebar';
 import Panel from '../components/Panel';
@@ -54,7 +55,7 @@ function DashboardContent() {
   }, [selectedItemId]);
 
   // Subscribe to live price tick
-  const { data: priceData, loading: priceLoading } = useSubscription(
+  const { data: priceData, loading: priceLoading } = useSubscription<any>(
     LATEST_PRICE_SUBSCRIPTION,
     {
       variables: { itemId: selectedItemId || 2 },
@@ -63,7 +64,7 @@ function DashboardContent() {
   );
 
   // Subscribe to active alerts
-  const { data: alertsData } = useSubscription(
+  const { data: alertsData } = useSubscription<any>(
     ACTIVE_ALERTS_SUBSCRIPTION,
     {
       variables: { itemId: selectedItemId || 2 },

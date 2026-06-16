@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 import Panel from './Panel';
 
 export const GET_ITEMS = gql`
@@ -28,7 +29,7 @@ interface ItemSidebarProps {
 }
 
 export default function ItemSidebar({ selectedItemId, onSelectItem }: ItemSidebarProps) {
-  const { data, loading, error } = useQuery(GET_ITEMS);
+  const { data, loading, error } = useQuery<any>(GET_ITEMS);
   const [search, setSearch] = useState('');
 
   const items: Item[] = data?.items_metadata || [];
