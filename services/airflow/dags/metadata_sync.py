@@ -31,8 +31,18 @@ def fetch_and_sync_metadata():
     logger.info(f"Fetched {len(mapping_data)} items.")
     
     # 1. Sync directly to PostgreSQL
-    pg_hook = PostgresHook(postgres_conn_id='postgres_default')
-    conn = pg_hook.get_conn()
+    import psycopg2
+    postgres_host = os.getenv("POSTGRES_HOST", "osrs-postgres")
+    postgres_db = os.getenv("POSTGRES_DB", "osrs_market")
+    postgres_user = os.getenv("POSTGRES_USER", "postgres")
+    postgres_password = os.getenv("POSTGRES_PASSWORD", "postgres_secure_pass")
+    
+    conn = psycopg2.connect(
+        host=postgres_host,
+        database=postgres_db,
+        user=postgres_user,
+        password=postgres_password
+    )
     cursor = conn.cursor()
     
     logger.info("Upserting items into Postgres...")
