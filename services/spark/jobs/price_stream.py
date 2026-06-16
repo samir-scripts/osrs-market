@@ -2,7 +2,8 @@ import os
 import sys
 import json
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, expr, from_json, from_avro, to_timestamp, year, month, day, window, avg, stddev, last, current_timestamp
+from pyspark.sql.functions import col, expr, from_json, to_timestamp, year, month, day, window, avg, stddev, last, current_timestamp
+from pyspark.sql.avro.functions import from_avro
 from pyspark.sql.types import StructType, StructField, IntegerType, LongType, StringType
 
 # Set python path or options if needed
