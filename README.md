@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="https://upload.wikimedia.org/wikipedia/en/thumb/b/b9/Runescape_map_icon.png/40px-Runescape_map_icon.png" alt="logo" width="80" height="auto" />
+  <img src="https://oldschool.runescape.wiki/images/Old_School_RuneScape_client_icon_(alternative).png?9fcc3" alt="logo" width="80" height="auto" />
   <h1>OSRS Market Tracker</h1>
   
   <p>
@@ -23,11 +23,11 @@
 </p>
 
 <h4>
-  <a href="#getting-started">Getting Started</a>
+  <a href="#-getting-started">Getting Started</a>
   <span> · </span>
-  <a href="#architecture">Architecture</a>
+  <a href="#-architecture">Architecture</a>
   <span> · </span>
-  <a href="#environment-variables">Configuration</a>
+  <a href="#-environment-variables">Configuration</a>
 </h4>
 
 </div>
@@ -38,37 +38,37 @@
 
 <!-- Table of Contents -->
 
-# Table of Contents
+# 📓 Table of Contents
 
-- [About the Project](#about-the-project)
-  - [Screenshots](#screenshots)
-  - [Tech Stack](#tech-stack)
-  - [Features](#features)
-  - [Environment Variables](#environment-variables)
-- [Architecture](#architecture)
-  - [Data Flow](#data-flow)
-  - [Service Map](#service-map)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation & Run](#installation--run)
-  - [Backfill Historical Data](#backfill-historical-data)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
+- [About the Project](#-about-the-project)
+  - [Screenshots](#-screenshots)
+  - [Tech Stack](#-tech-stack)
+  - [Features](#-features)
+  - [Environment Variables](#-environment-variables)
+- [Architecture](#-architecture)
+  - [Data Flow](#-data-flow)
+  - [Service Map](#-service-map)
+- [Getting Started](#-getting-started)
+  - [Prerequisites](#-prerequisites)
+  - [Installation & Run](#-installation--run)
+  - [Backfill Historical Data](#-backfill-historical-data)
+- [Usage](#-usage)
+- [Project Structure](#-project-structure)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Acknowledgements](#-acknowledgements)
 
 ---
 
 <!-- About the Project -->
 
-## About the Project
+## 🌟 About the Project
 
 OSRS Market Tracker is a full-stack, containerized data engineering portfolio project that tracks price movements across 4,500+ items in the Old School RuneScape Grand Exchange. It demonstrates a real-world streaming data pipeline — from ingestion and transformation to serving — using industry-standard tools.
 
 The platform ingests live price ticks via the [OSRS Prices API](https://prices.runescape.wiki/api/v1/osrs), produces them to a Redpanda (Kafka-compatible) topic, processes them with Apache Spark Structured Streaming, stores the results as Hive-partitioned Parquet files in MinIO (S3-compatible object storage), aggregates them with dbt-core and DuckDB, and surfaces everything through a live Next.js dashboard with GraphQL subscriptions.
 
-### Screenshots
+### 📷 Screenshots
 
 <div align="center">
   <img src="images/dashboard.png" alt="screenshot" />
@@ -76,7 +76,7 @@ The platform ingests live price ticks via the [OSRS Prices API](https://prices.r
 
 ---
 
-### Tech Stack
+### 👾 Tech Stack
 
 <details>
   <summary><b>Frontend</b></summary>
@@ -133,22 +133,22 @@ The platform ingests live price ticks via the [OSRS Prices API](https://prices.r
 
 ---
 
-### Features
+### 🎯 Features
 
-- **Live Price Ticks** — Polls the OSRS Prices API every 5 minutes and streams price events through Redpanda
-- **Spark Structured Streaming** — Consumes from Kafka and writes Hive-partitioned Parquet files to MinIO with automatic watchdog recovery
-- **Historical Price Charts** — Interactive price & volume charts (24H, 7D, 30D) queried directly from Parquet via DuckDB
-- **Top 10 Daily Price Movers** — Pre-computed by a nightly Airflow DAG at midnight, served from a static Postgres table for instant load
-- **Price Alerts** — Set threshold-based alerts (>, <, >=, <=) on any item and receive in-app notifications when live prices cross them
-- **Full Item Catalogue** — Virtualized sidebar with 4,500+ OSRS items, icons loaded from the WeirdGloop sprite mirror
-- **dbt Daily Marts** — Nightly aggregation of raw 5-min ticks into a single daily Parquet mart for efficient historical queries
-- **Item Search** — Filter the sidebar by item name in real time
-- **Staging / Readiness** — Backend retry loop ensures the chart never flashes "no data" while Spark is still flushing a Parquet file to MinIO
-- **Prometheus + Grafana** — API metrics exposed and visualized out of the box
+- ⚡ **Live Price Ticks** — Polls the OSRS Prices API every 5 minutes and streams price events through Redpanda
+- 🔥 **Spark Structured Streaming** — Consumes from Kafka and writes Hive-partitioned Parquet files to MinIO with automatic watchdog recovery
+- 📊 **Historical Price Charts** — Interactive price & volume charts (24H, 7D, 30D) queried directly from Parquet via DuckDB
+- 🏆 **Top 10 Daily Price Movers** — Pre-computed by a nightly Airflow DAG at midnight, served from a static Postgres table for instant load
+- 🔔 **Price Alerts** — Set threshold-based alerts (>, <, >=, <=) on any item and receive in-app notifications when live prices cross them
+- 🖼️ **Full Item Catalogue** — Virtualized sidebar with 4,500+ OSRS items, icons loaded from the WeirdGloop sprite mirror
+- 📦 **dbt Daily Marts** — Nightly aggregation of raw 5-min ticks into a single daily Parquet mart for efficient historical queries
+- 🔍 **Item Search** — Filter the sidebar by item name in real time
+- 🛡️ **Staging / Readiness** — Backend retry loop ensures the chart never flashes "no data" while Spark is still flushing a Parquet file to MinIO
+- 📈 **Prometheus + Grafana** — API metrics exposed and visualized out of the box
 
 ---
 
-### Environment Variables
+### 🔑 Environment Variables
 
 Copy `.env.example` to `.env` and fill in the values. All variables have safe defaults for local development.
 
@@ -165,45 +165,45 @@ Copy `.env.example` to `.env` and fill in the values. All variables have safe de
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
-### Data Flow
+### 📈 Data Flow
 
 ```
 OSRS Prices API
       │
       ▼
 FastAPI Producer  ──── Polls every 5 min ──►  Redpanda (Kafka Topic: osrs.prices)
-                                                          │
-                                                          ▼
-                                              Apache Spark Structured Streaming
-                                                          │
-                                              Writes Hive-partitioned Parquet
-                                                          │
-                                                          ▼
-                                              MinIO (S3)  ──  s3://osrs-parquet/ticks/
-                                                          │
-                                           ┌──────────────┼─────────────────┐
-                                           │              │                  │
-                                           ▼              ▼                  ▼
-                                     dbt-core       DuckDB             Airflow DAGs
-                                (daily marts)  (ad-hoc OLAP)  (metadata, compaction, movers)
-                                           │              │
-                                           └──────────────┘
-                                                   │
-                                                   ▼
-                                          FastAPI Analytics  ◄── PostgreSQL (item metadata,
-                                                   │              daily movers, alerts)
-                                                   ▼
-                                          Next.js + Hasura
-                                        (GraphQL subscriptions,
-                                         REST API for analytics)
-                                                   │
-                                                   ▼
-                                               Browser UI
+                                                         │
+                                                         ▼
+                                             Apache Spark Structured Streaming
+                                                         │
+                                             Writes Hive-partitioned Parquet
+                                                         │
+                                                         ▼
+                                             MinIO (S3)  ──  s3://osrs-parquet/ticks/
+                                                         │
+                                          ┌──────────────┼─────────────────┐
+                                          │              │                  │
+                                          ▼              ▼                  ▼
+                                    dbt-core       DuckDB             Airflow DAGs
+                               (daily marts)  (ad-hoc OLAP)  (metadata, compaction, movers)
+                                          │              │
+                                          └──────────────┘
+                                                  │
+                                                  ▼
+                                         FastAPI Analytics  ◄── PostgreSQL (item metadata,
+                                                  │              daily movers, alerts)
+                                                  ▼
+                                         Next.js + Hasura
+                                       (GraphQL subscriptions,
+                                        REST API for analytics)
+                                                  │
+                                                  ▼
+                                              Browser UI
 ```
 
-### Service Map
+### 🗺️ Service Map
 
 | Service               | Port          | Description                            |
 | --------------------- | ------------- | -------------------------------------- |
@@ -222,9 +222,9 @@ FastAPI Producer  ──── Polls every 5 min ──►  Redpanda (Kafka Topi
 
 ---
 
-## Getting Started
+## 🧰 Getting Started
 
-### Prerequisites
+### ❗ Prerequisites
 
 Ensure the following are installed on your machine:
 
@@ -234,7 +234,7 @@ Ensure the following are installed on your machine:
 
 ---
 
-### Installation & Run
+### ⚙️ Installation & Run
 
 1. **Clone the repository**
 
@@ -277,7 +277,7 @@ Navigate to [http://localhost:8085](http://localhost:8085) (user: `admin`, pass:
 
 ---
 
-### Backfill Historical Data
+### 📂 Backfill Historical Data
 
 By default the MinIO bucket starts empty. To backfill 30 days of simulated price history for all items, trigger the backfill DAG from the Airflow UI or via CLI:
 
@@ -290,7 +290,7 @@ docker exec -it osrs-airflow-scheduler \
 
 ---
 
-## Usage
+## 👀 Usage
 
 Once the stack is running:
 
@@ -303,7 +303,7 @@ Once the stack is running:
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 osrs-market/
@@ -361,7 +361,7 @@ osrs-market/
 
 ---
 
-## Contributing
+## 👋 Contributing
 
 Contributions are welcome! Please feel free to open an issue or submit a pull request.
 
@@ -373,13 +373,13 @@ Contributions are welcome! Please feel free to open an issue or submit a pull re
 
 ---
 
-## License
+## ⚠️ License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-## Acknowledgements
+## 💎 Acknowledgements
 
 - [OSRS Prices API](https://prices.runescape.wiki/api/v1/osrs) by the RuneScape Wiki for providing free, real-time price data
 - [WeirdGloop](https://chisel.weirdgloop.org/) for hosting the OSRS item sprite mirror
