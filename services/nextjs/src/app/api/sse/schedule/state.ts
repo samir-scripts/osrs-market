@@ -1,11 +1,14 @@
 export interface ScheduleData {
   lastFetchedAt: number;
   nextUpdateAt: number;
+  connectionStatus: 'online' | 'offline';
+  event?: 'data_updated' | 'status_update';
 }
 
 export const scheduleState: ScheduleData = {
   lastFetchedAt: 0,
   nextUpdateAt: 0,
+  connectionStatus: 'online',
 };
 
 type Listener = (data: ScheduleData) => void;

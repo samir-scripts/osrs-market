@@ -5,6 +5,7 @@ export const UpdateTimer: React.FC = () => {
   const nextUpdateAt = useStore((state) => state.nextUpdateAt);
   const setSchedule = useStore((state) => state.setSchedule);
   const incrementRefreshKey = useStore((state) => state.incrementRefreshKey);
+  const setConnectionStatus = useStore((state) => state.setConnectionStatus);
 
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [pulse, setPulse] = useState(false);
@@ -19,13 +20,20 @@ export const UpdateTimer: React.FC = () => {
           if (data.next_update_at) {
             setSchedule(data.last_fetched_at, data.next_update_at);
           }
+          if (data.connection_status) {
+            setConnectionStatus(data.connection_status);
+          }
+        } else {
+          // If the endpoint fails, treat connection as offline defensively
+          setConnectionStatus('offline');
         }
       } catch (err) {
         console.error('Failed to fetch initial schedule:', err);
+        setConnectionStatus('offline');
       }
     };
     fetchInitialSchedule();
-  }, [setSchedule]);
+  }, [setSchedule, setConnectionStatus]);
 
   // 2. Subscribe to SSE updates
   useEffect(() => {
@@ -34,6 +42,11 @@ export const UpdateTimer: React.FC = () => {
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        
+        if (data.connectionStatus) {
+          setConnectionStatus(data.connectionStatus);
+        }
+        
         if (data.nextUpdateAt) {
           setSchedule(data.lastFetchedAt, data.nextUpdateAt);
           
@@ -51,12 +64,13 @@ export const UpdateTimer: React.FC = () => {
 
     eventSource.onerror = (err) => {
       console.error('SSE connection error, attempting reconnect...', err);
+      // If we lose SSE, it might indicate local connection issues, but we'll let the backend verify.
     };
 
     return () => {
       eventSource.close();
     };
-  }, [setSchedule, incrementRefreshKey]);
+  }, [setSchedule, incrementRefreshKey, setConnectionStatus]);
 
   // 3. Keep updating the countdown
   useEffect(() => {

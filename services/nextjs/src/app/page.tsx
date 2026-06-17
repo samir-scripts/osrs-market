@@ -14,6 +14,7 @@ import AlertBanner from '../components/AlertBanner';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { UpdateTimer } from '../components/UpdateTimer';
 import { useStore } from '../store/useStore';
+import ConnectionToast from '../components/ConnectionToast';
 
 // GraphQL Subscriptions
 const LATEST_PRICE_SUBSCRIPTION = gql`
@@ -311,6 +312,7 @@ function DashboardContent() {
 
       {/* Main Content Area */}
       <main className="main-content">
+        <ConnectionToast />
         {/* Top Header Bar */}
         <div
           style={{

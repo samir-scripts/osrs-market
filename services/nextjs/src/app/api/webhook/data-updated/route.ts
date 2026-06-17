@@ -5,12 +5,19 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    if (body.event !== 'data_updated') {
+    if (body.event !== 'data_updated' && body.event !== 'status_update') {
       return NextResponse.json({ error: 'Unknown event type' }, { status: 400 });
     }
 
-    scheduleState.lastFetchedAt = Number(body.fetched_at || 0);
-    scheduleState.nextUpdateAt = Number(body.next_update_at || 0);
+    if (body.event === 'data_updated') {
+      scheduleState.lastFetchedAt = Number(body.fetched_at || 0);
+      scheduleState.nextUpdateAt = Number(body.next_update_at || 0);
+      scheduleState.connectionStatus = 'online';
+      scheduleState.event = 'data_updated';
+    } else if (body.event === 'status_update') {
+      scheduleState.connectionStatus = body.status === 'offline' ? 'offline' : 'online';
+      scheduleState.event = 'status_update';
+    }
 
     // Notify all active SSE streams
     notifyClients({ ...scheduleState });
@@ -20,6 +27,8 @@ export async function POST(request: NextRequest) {
       received: {
         lastFetchedAt: scheduleState.lastFetchedAt,
         nextUpdateAt: scheduleState.nextUpdateAt,
+        connectionStatus: scheduleState.connectionStatus,
+        event: scheduleState.event,
       },
     });
   } catch (error: any) {

@@ -3,6 +3,7 @@ import os
 import time
 import logging
 import requests
+import socket
 from fastapi import FastAPI, BackgroundTasks
 from prometheus_fastapi_instrumentator import Instrumentator
 from confluent_kafka import SerializingProducer
@@ -32,6 +33,8 @@ polling_task = None
 is_running = True
 last_fetched_at = 0
 next_update_at = 0
+current_status = "online"
+
 
 def load_avro_schema():
     schema_path = os.path.join(os.path.dirname(__file__), "schemas", "price_tick.avsc")
@@ -70,10 +73,27 @@ def delivery_report(err, msg):
         # Avoid spamming log for every item, but log occasionally or on success/fail details
         pass
 
-def fetch_and_produce_prices():
+def check_internet_connection() -> bool:
+    for host in [("8.8.8.8", 53), ("1.1.1.1", 53)]:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(2.0)
+            s.connect(host)
+            s.close()
+            return True
+        except Exception as e:
+            logger.debug(f"Failed to connect to {host}: {e}")
+            continue
+    return False
+
+def fetch_and_produce_prices() -> bool:
+    if not check_internet_connection():
+        logger.warning("Internet connectivity check failed. Server is offline.")
+        return False
+
     if producer is None:
         logger.warning("Producer not initialized. Skipping poll.")
-        return
+        return False
         
     url = "https://prices.runescape.wiki/api/v1/osrs/5m"
     headers = {"User-Agent": USER_AGENT}
@@ -85,7 +105,7 @@ def fetch_and_produce_prices():
         payload = response.json()
     except Exception as e:
         logger.error(f"Error fetching prices: {e}")
-        return
+        return False
 
     data = payload.get("data", {})
     timestamp = payload.get("timestamp", int(time.time()))
@@ -123,6 +143,7 @@ def fetch_and_produce_prices():
     last_fetched_at = int(time.time())
     next_update_at = last_fetched_at + POLL_INTERVAL_SEC
     _fire_webhook()
+    return True
 
 def _fire_webhook():
     if not WEBHOOK_URL:
@@ -143,24 +164,58 @@ def _fire_webhook():
     except Exception as e:
         logger.error(f"Error firing webhook: {e}")
 
+def _fire_status_webhook(status: str):
+    if not WEBHOOK_URL:
+        logger.info("No WEBHOOK_URL configured. Skipping status webhook notify.")
+        return
+    logger.info(f"Firing status-update ({status}) webhook to {WEBHOOK_URL}...")
+    try:
+        response = requests.post(
+            WEBHOOK_URL,
+            json={
+                "event": "status_update",
+                "status": status
+            },
+            timeout=2.0
+        )
+        logger.info(f"Status Webhook response: {response.status_code}")
+    except Exception as e:
+        logger.error(f"Error firing status webhook: {e}")
+
 async def polling_loop():
-    global is_running
+    global is_running, current_status
     logger.info("Starting polling loop background task...")
     
     # Wait for Schema Registry and Redpanda to be fully up and ready
     await asyncio.sleep(10)
     
     while is_running:
+        sleep_time = POLL_INTERVAL_SEC
         try:
             if producer is None:
                 init_kafka_producer()
-            fetch_and_produce_prices()
+            
+            success = fetch_and_produce_prices()
+            if success:
+                if current_status == "offline":
+                    current_status = "online"
+                    _fire_status_webhook("online")
+                sleep_time = POLL_INTERVAL_SEC
+            else:
+                if current_status == "online":
+                    current_status = "offline"
+                _fire_status_webhook("offline")
+                sleep_time = 8
         except Exception as e:
             logger.error(f"Exception in polling loop: {e}")
+            if current_status == "online":
+                current_status = "offline"
+            _fire_status_webhook("offline")
+            sleep_time = 8
             
-        logger.info(f"Sleeping for {POLL_INTERVAL_SEC} seconds...")
+        logger.info(f"Sleeping for {sleep_time} seconds...")
         # Check is_running periodically during sleep to support quick shutdown
-        for _ in range(POLL_INTERVAL_SEC):
+        for _ in range(sleep_time):
             if not is_running:
                 break
             await asyncio.sleep(1)
@@ -184,7 +239,8 @@ def health():
     return {
         "status": "healthy",
         "producer_initialized": producer is not None,
-        "is_running": is_running
+        "is_running": is_running,
+        "connection_status": current_status
     }
 
 @app.post("/trigger")
@@ -197,5 +253,6 @@ def get_schedule():
     return {
         "last_fetched_at": last_fetched_at,
         "next_update_at": next_update_at,
-        "poll_interval_sec": POLL_INTERVAL_SEC
+        "poll_interval_sec": POLL_INTERVAL_SEC,
+        "connection_status": current_status
     }

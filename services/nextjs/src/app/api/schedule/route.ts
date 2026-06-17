@@ -19,6 +19,7 @@ export async function GET() {
       last_fetched_at: 0,
       next_update_at: 0,
       poll_interval_sec: 300,
+      connection_status: 'offline',
       error: error.message || 'Failed to connect to producer'
     });
   }

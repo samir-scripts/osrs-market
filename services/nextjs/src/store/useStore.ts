@@ -7,6 +7,7 @@ interface AppState {
   triggeredAlerts: string[];
   lastFetchedAt: number;
   nextUpdateAt: number;
+  connectionStatus: 'online' | 'offline';
   
   setSelectedItemId: (id: number | null) => void;
   setSelectedItemName: (name: string) => void;
@@ -15,6 +16,7 @@ interface AppState {
   addTriggeredAlert: (alert: string) => void;
   removeTriggeredAlert: (index: number) => void;
   setSchedule: (lastFetchedAt: number, nextUpdateAt: number) => void;
+  setConnectionStatus: (status: 'online' | 'offline') => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -24,6 +26,7 @@ export const useStore = create<AppState>((set) => ({
   triggeredAlerts: [],
   lastFetchedAt: 0,
   nextUpdateAt: 0,
+  connectionStatus: 'online',
   
   setSelectedItemId: (id) => set({ selectedItemId: id }),
   setSelectedItemName: (name) => set({ selectedItemName: name }),
@@ -37,4 +40,5 @@ export const useStore = create<AppState>((set) => ({
     triggeredAlerts: state.triggeredAlerts.filter((_, i) => i !== index)
   })),
   setSchedule: (lastFetchedAt, nextUpdateAt) => set({ lastFetchedAt, nextUpdateAt }),
+  setConnectionStatus: (status) => set({ connectionStatus: status }),
 }));
