@@ -38,7 +38,7 @@
 
 <!-- Table of Contents -->
 
-# 📓 Table of Contents
+# Table of Contents
 
 - [About the Project](#-about-the-project)
   - [Screenshots](#-screenshots)
@@ -62,13 +62,13 @@
 
 <!-- About the Project -->
 
-## 🌟 About the Project
+## About the Project
 
 OSRS Market Tracker is a full-stack, containerized data engineering portfolio project that tracks price movements across 4,500+ items in the Old School RuneScape Grand Exchange. It demonstrates a real-world streaming data pipeline — from ingestion and transformation to serving — using industry-standard tools.
 
 The platform ingests live price ticks via the [OSRS Prices API](https://prices.runescape.wiki/api/v1/osrs), produces them to a Redpanda (Kafka-compatible) topic, processes them with Apache Spark Structured Streaming, stores the results as Hive-partitioned Parquet files in MinIO (S3-compatible object storage), aggregates them with dbt-core and DuckDB, and surfaces everything through a live Next.js dashboard with GraphQL subscriptions.
 
-### 📷 Screenshots
+### Screenshots
 
 <div align="center">
   <img src="images/dashboard.png" alt="screenshot" />
@@ -76,7 +76,7 @@ The platform ingests live price ticks via the [OSRS Prices API](https://prices.r
 
 ---
 
-### 👾 Tech Stack
+### Tech Stack
 
 <details>
   <summary><b>Frontend</b></summary>
@@ -133,22 +133,22 @@ The platform ingests live price ticks via the [OSRS Prices API](https://prices.r
 
 ---
 
-### 🎯 Features
+### Features
 
-- ⚡ **Live Price Ticks** — Polls the OSRS Prices API every 5 minutes and streams price events through Redpanda
-- 🔥 **Spark Structured Streaming** — Consumes from Kafka and writes Hive-partitioned Parquet files to MinIO with automatic watchdog recovery
-- 📊 **Historical Price Charts** — Interactive price & volume charts (24H, 7D, 30D) queried directly from Parquet via DuckDB
-- 🏆 **Top 10 Daily Price Movers** — Pre-computed by a nightly Airflow DAG at midnight, served from a static Postgres table for instant load
-- 🔔 **Price Alerts** — Set threshold-based alerts (>, <, >=, <=) on any item and receive in-app notifications when live prices cross them
-- 🖼️ **Full Item Catalogue** — Virtualized sidebar with 4,500+ OSRS items, icons loaded from the WeirdGloop sprite mirror
-- 📦 **dbt Daily Marts** — Nightly aggregation of raw 5-min ticks into a single daily Parquet mart for efficient historical queries
-- 🔍 **Item Search** — Filter the sidebar by item name in real time
-- 🛡️ **Staging / Readiness** — Backend retry loop ensures the chart never flashes "no data" while Spark is still flushing a Parquet file to MinIO
-- 📈 **Prometheus + Grafana** — API metrics exposed and visualized out of the box
+- **Live Price Ticks** — Polls the OSRS Prices API every 5 minutes and streams price events through Redpanda
+- **Spark Structured Streaming** — Consumes from Kafka and writes Hive-partitioned Parquet files to MinIO with automatic watchdog recovery
+- **Historical Price Charts** — Interactive price & volume charts (24H, 7D, 30D) queried directly from Parquet via DuckDB
+- **Top 10 Daily Price Movers** — Pre-computed by a nightly Airflow DAG at midnight, served from a static Postgres table for instant load
+- **Price Alerts** — Set threshold-based alerts (>, <, >=, <=) on any item and receive in-app notifications when live prices cross them
+- **Full Item Catalogue** — Virtualized sidebar with 4,500+ OSRS items, icons loaded from the WeirdGloop sprite mirror
+- **dbt Daily Marts** — Nightly aggregation of raw 5-min ticks into a single daily Parquet mart for efficient historical queries
+- **Item Search** — Filter the sidebar by item name in real time
+- **Staging / Readiness** — Backend retry loop ensures the chart never flashes "no data" while Spark is still flushing a Parquet file to MinIO
+- **Prometheus + Grafana** — API metrics exposed and visualized out of the box
 
 ---
 
-### 🔑 Environment Variables
+### Environment Variables
 
 Copy `.env.example` to `.env` and fill in the values. All variables have safe defaults for local development.
 
@@ -165,9 +165,9 @@ Copy `.env.example` to `.env` and fill in the values. All variables have safe de
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
-### 📈 Data Flow
+### Data Flow
 
 ```
 OSRS Prices API
@@ -203,7 +203,7 @@ FastAPI Producer  ──── Polls every 5 min ──►  Redpanda (Kafka Topi
                                               Browser UI
 ```
 
-### 🗺️ Service Map
+### Service Map
 
 | Service               | Port          | Description                            |
 | --------------------- | ------------- | -------------------------------------- |
@@ -222,9 +222,9 @@ FastAPI Producer  ──── Polls every 5 min ──►  Redpanda (Kafka Topi
 
 ---
 
-## 🧰 Getting Started
+## Getting Started
 
-### ❗ Prerequisites
+### Prerequisites
 
 Ensure the following are installed on your machine:
 
@@ -290,7 +290,7 @@ docker exec -it osrs-airflow-scheduler \
 
 ---
 
-## 👀 Usage
+## Usage
 
 Once the stack is running:
 
@@ -361,7 +361,7 @@ osrs-market/
 
 ---
 
-## 👋 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to open an issue or submit a pull request.
 
@@ -379,7 +379,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-## 💎 Acknowledgements
+## Acknowledgements
 
 - [OSRS Prices API](https://prices.runescape.wiki/api/v1/osrs) by the RuneScape Wiki for providing free, real-time price data
 - [WeirdGloop](https://chisel.weirdgloop.org/) for hosting the OSRS item sprite mirror
