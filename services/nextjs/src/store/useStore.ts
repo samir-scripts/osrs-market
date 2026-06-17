@@ -5,6 +5,8 @@ interface AppState {
   selectedItemName: string;
   refreshKey: number;
   triggeredAlerts: string[];
+  lastFetchedAt: number;
+  nextUpdateAt: number;
   
   setSelectedItemId: (id: number | null) => void;
   setSelectedItemName: (name: string) => void;
@@ -12,6 +14,7 @@ interface AppState {
   setTriggeredAlerts: (alerts: string[]) => void;
   addTriggeredAlert: (alert: string) => void;
   removeTriggeredAlert: (index: number) => void;
+  setSchedule: (lastFetchedAt: number, nextUpdateAt: number) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -19,6 +22,8 @@ export const useStore = create<AppState>((set) => ({
   selectedItemName: 'Cannonball',
   refreshKey: 0,
   triggeredAlerts: [],
+  lastFetchedAt: 0,
+  nextUpdateAt: 0,
   
   setSelectedItemId: (id) => set({ selectedItemId: id }),
   setSelectedItemName: (name) => set({ selectedItemName: name }),
@@ -31,4 +36,5 @@ export const useStore = create<AppState>((set) => ({
   removeTriggeredAlert: (index) => set((state) => ({
     triggeredAlerts: state.triggeredAlerts.filter((_, i) => i !== index)
   })),
+  setSchedule: (lastFetchedAt, nextUpdateAt) => set({ lastFetchedAt, nextUpdateAt }),
 }));

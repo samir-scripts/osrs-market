@@ -207,9 +207,6 @@ function DashboardContent() {
     setLargeIconFailed(false);
   }, [selectedItemId]);
 
-  const triggerRefresh = () => {
-    incrementRefreshKey();
-  };
 
   // Subscribe to live price tick
   const { data: priceData, loading: priceLoading } = useSubscription<any>(
@@ -330,7 +327,7 @@ function DashboardContent() {
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', height: '100%' }}>
             <LiveIndicator />
-            <UpdateTimer onTimerFire={triggerRefresh} />
+            <UpdateTimer />
           </div>
         </div>
 

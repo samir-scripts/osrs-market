@@ -24,11 +24,14 @@ REDPANDA_BROKERS = os.getenv("REDPANDA_BROKERS", "redpanda:29092")
 SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL", "http://redpanda:8081")
 POLL_INTERVAL_SEC = int(os.getenv("POLL_INTERVAL_SEC", "300"))
 USER_AGENT = os.getenv("USER_AGENT", "OSRS Price Tracker - @DevelopmentSandbox")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
 
 # Globals
 producer = None
 polling_task = None
 is_running = True
+last_fetched_at = 0
+next_update_at = 0
 
 def load_avro_schema():
     schema_path = os.path.join(os.path.dirname(__file__), "schemas", "price_tick.avsc")
@@ -115,6 +118,30 @@ def fetch_and_produce_prices():
             
     producer.flush()
     logger.info(f"Successfully flushed {count} records to topic: osrs.price-ticks.raw")
+    
+    global last_fetched_at, next_update_at
+    last_fetched_at = int(time.time())
+    next_update_at = last_fetched_at + POLL_INTERVAL_SEC
+    _fire_webhook()
+
+def _fire_webhook():
+    if not WEBHOOK_URL:
+        logger.info("No WEBHOOK_URL configured. Skipping webhook notify.")
+        return
+    logger.info(f"Firing data-updated webhook to {WEBHOOK_URL}...")
+    try:
+        response = requests.post(
+            WEBHOOK_URL,
+            json={
+                "event": "data_updated",
+                "fetched_at": last_fetched_at,
+                "next_update_at": next_update_at
+            },
+            timeout=2.0
+        )
+        logger.info(f"Webhook response: {response.status_code}")
+    except Exception as e:
+        logger.error(f"Error firing webhook: {e}")
 
 async def polling_loop():
     global is_running
@@ -164,3 +191,11 @@ def health():
 def trigger_poll(background_tasks: BackgroundTasks):
     background_tasks.add_task(fetch_and_produce_prices)
     return {"status": "triggered"}
+
+@app.get("/schedule")
+def get_schedule():
+    return {
+        "last_fetched_at": last_fetched_at,
+        "next_update_at": next_update_at,
+        "poll_interval_sec": POLL_INTERVAL_SEC
+    }

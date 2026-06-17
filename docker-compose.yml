@@ -301,6 +301,7 @@ services:
       REDPANDA_BROKERS: redpanda:29092
       SCHEMA_REGISTRY_URL: http://redpanda:8081
       POLL_INTERVAL_SEC: 300
+      WEBHOOK_URL: http://nextjs:3000/api/webhook/data-updated
     depends_on:
       redpanda:
         condition: service_healthy
@@ -339,11 +340,14 @@ services:
     environment:
       ANALYTICS_SERVICE_URL: http://fastapi-analytics:8001
       HASURA_URL: http://hasura:8080/v1/graphql
+      PRODUCER_URL: http://fastapi-producer:8000
     depends_on:
       hasura:
         condition: service_healthy
       fastapi-analytics:
         condition: service_healthy
+      fastapi-producer:
+        condition: service_started
     networks:
       - osrs-net
 
