@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@apollo/client/react';
 import Panel from './Panel';
 import { useStore } from '../store/useStore';
+import { GET_ITEMS } from './ItemSidebar';
 
 interface Mover {
   item_id: number;
@@ -22,6 +24,17 @@ export default function PriceTable() {
   const setSelectedItemId = useStore((state) => state.setSelectedItemId);
   const setSelectedItemName = useStore((state) => state.setSelectedItemName);
   const setTriggeredAlerts = useStore((state) => state.setTriggeredAlerts);
+
+  const { data: itemsData } = useQuery<any>(GET_ITEMS);
+  const itemsMap = useMemo(() => {
+    const map = new Map<number, string>();
+    if (itemsData?.items_metadata) {
+      itemsData.items_metadata.forEach((item: any) => {
+        map.set(item.item_id, item.name);
+      });
+    }
+    return map;
+  }, [itemsData]);
 
   const handleImageError = (itemId: number) => {
     setFailedImages(prev => ({ ...prev, [itemId]: true }));
@@ -73,7 +86,7 @@ export default function PriceTable() {
             <thead>
               <tr>
                 <th style={{ width: '40px' }}>ICON</th>
-                <th>ITEM ID</th>
+                <th>ITEM</th>
                 <th style={{ textAlign: 'right' }}>START PRICE (GP)</th>
                 <th style={{ textAlign: 'right' }}>END PRICE (GP)</th>
                 <th style={{ textAlign: 'right' }}>CHANGE</th>
@@ -85,6 +98,7 @@ export default function PriceTable() {
                 const isPositive = mover.percent_change >= 0;
                 // Defensive casting
                 const moverId = Number(mover.item_id);
+                const itemName = mover.name || itemsMap.get(moverId) || `Item #${moverId}`;
                 return (
                   <tr key={moverId}>
                     <td>
@@ -112,7 +126,7 @@ export default function PriceTable() {
                         </div>
                       )}
                     </td>
-                    <td style={{ fontWeight: 'bold' }}>Item #{moverId}</td>
+                    <td style={{ fontWeight: 'bold' }}>{itemName}</td>
                     <td style={{ textAlign: 'right' }}>{mover.start_price?.toLocaleString()}</td>
                     <td style={{ textAlign: 'right' }}>{mover.end_price?.toLocaleString()}</td>
                     <td
@@ -123,7 +137,7 @@ export default function PriceTable() {
                     </td>
                     <td>
                       <button
-                        onClick={() => onSelectItem(moverId, `Item #${moverId}`)}
+                        onClick={() => onSelectItem(moverId, itemName)}
                         className="osrs-btn"
                         style={{ padding: '2px 6px', fontSize: '10px', border: '1px solid var(--color-border)' }}
                       >

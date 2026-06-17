@@ -2,6 +2,24 @@
 
 This walkthrough details the changes made and verified to satisfy the requirements for both Phase 1 and Phase 2.
 
+## Phase 3 Changes
+
+### 1. Item Names in "Top 10 Price Movers"
+- Resolved a bug where items were listed by their ID rather than their name when the GraphQL items map was empty.
+- Pushed item name resolution to the backend: the `/analytics/top-movers` endpoint now queries the Postgres `items_metadata` database directly to attach item names.
+- Updated `PriceTable.tsx` to read the resolved `name` directly from the API response with a robust fallback system.
+
+### 2. Daily Midnight Refresh for Top Movers
+- Created a new PostgreSQL table `public.daily_top_movers` to store pre-computed daily mover results.
+- Added a new Airflow DAG `osrs_daily_top_movers` ([daily_top_movers.py](file:///Users/samirkatakamsetty/Desktop/Home/Data%20Engineering%20Projects/osrs-market/services/airflow/dags/daily_top_movers.py)) scheduled to run daily at midnight (`0 0 * * *`). It computes top movers from raw ticks in MinIO, maps their names from PostgreSQL, and truncates/populates the static `daily_top_movers` table.
+- Updated `/analytics/top-movers` in the FastAPI analytics service to query from `daily_top_movers` directly, eliminating heavy DuckDB runs on every click and guaranteeing data only updates every 24 hours.
+
+### 3. MinIO Data Staging & Readiness Check
+- Added an internal retry loop to the `/items/{item_id}/history` endpoint in `services/analytics/main.py`. If a query returns 0 rows (indicating a write in progress or S3 delay), the backend stages the request and retries up to 5 times (1s interval) before returning data.
+- This prevents the front-end from erroneously showing a "NO HISTORICAL DATA" alert while data is being staged/written in MinIO.
+
+---
+
 ## Phase 2 Changes
 
 ### 1. Zustand State Management & Clean Prop-less Components
