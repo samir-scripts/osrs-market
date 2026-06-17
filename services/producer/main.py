@@ -145,42 +145,29 @@ def fetch_and_produce_prices() -> bool:
     _fire_webhook()
     return True
 
-def _fire_webhook():
+def _send_webhook(event_type: str, payload: dict):
     if not WEBHOOK_URL:
-        logger.info("No WEBHOOK_URL configured. Skipping webhook notify.")
+        logger.info(f"No WEBHOOK_URL configured. Skipping {event_type} webhook notify.")
         return
-    logger.info(f"Firing data-updated webhook to {WEBHOOK_URL}...")
+    logger.info(f"Firing {event_type} webhook to {WEBHOOK_URL}...")
     try:
-        response = requests.post(
-            WEBHOOK_URL,
-            json={
-                "event": "data_updated",
-                "fetched_at": last_fetched_at,
-                "next_update_at": next_update_at
-            },
-            timeout=2.0
-        )
-        logger.info(f"Webhook response: {response.status_code}")
+        response = requests.post(WEBHOOK_URL, json=payload, timeout=2.0)
+        logger.info(f"Webhook response for {event_type}: {response.status_code}")
     except Exception as e:
-        logger.error(f"Error firing webhook: {e}")
+        logger.error(f"Error firing {event_type} webhook: {e}")
+
+def _fire_webhook():
+    _send_webhook("data_updated", {
+        "event": "data_updated",
+        "fetched_at": last_fetched_at,
+        "next_update_at": next_update_at
+    })
 
 def _fire_status_webhook(status: str):
-    if not WEBHOOK_URL:
-        logger.info("No WEBHOOK_URL configured. Skipping status webhook notify.")
-        return
-    logger.info(f"Firing status-update ({status}) webhook to {WEBHOOK_URL}...")
-    try:
-        response = requests.post(
-            WEBHOOK_URL,
-            json={
-                "event": "status_update",
-                "status": status
-            },
-            timeout=2.0
-        )
-        logger.info(f"Status Webhook response: {response.status_code}")
-    except Exception as e:
-        logger.error(f"Error firing status webhook: {e}")
+    _send_webhook(f"status_update ({status})", {
+        "event": "status_update",
+        "status": status
+    })
 
 async def polling_loop():
     global is_running, current_status
