@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Panel from './Panel';
+import { useStore } from '../store/useStore';
 
 interface Mover {
   item_id: number;
@@ -11,10 +12,27 @@ interface Mover {
   percent_change: number;
 }
 
-export default function PriceTable({ onSelectItem }: { onSelectItem: (itemId: number, name: string) => void }) {
+export default function PriceTable() {
   const [movers, setMovers] = useState<Mover[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
+
+  const refreshKey = useStore((state) => state.refreshKey);
+  const setSelectedItemId = useStore((state) => state.setSelectedItemId);
+  const setSelectedItemName = useStore((state) => state.setSelectedItemName);
+  const setTriggeredAlerts = useStore((state) => state.setTriggeredAlerts);
+
+  const handleImageError = (itemId: number) => {
+    setFailedImages(prev => ({ ...prev, [itemId]: true }));
+  };
+
+  const onSelectItem = (itemId: number, name: string) => {
+    // Explicitly cast to Number defensively
+    setSelectedItemId(Number(itemId));
+    setSelectedItemName(name);
+    setTriggeredAlerts([]);
+  };
 
   const fetchMovers = async () => {
     try {
@@ -33,14 +51,11 @@ export default function PriceTable({ onSelectItem }: { onSelectItem: (itemId: nu
 
   useEffect(() => {
     fetchMovers();
-    // Poll every 5 minutes
-    const interval = setInterval(fetchMovers, 300000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [refreshKey]);
 
   return (
     <Panel
-      title="TOP PRICE MOVERS (LAST 24 HOURS)"
+      title="TOP 10 PRICE MOVERS (LAST 24 HOURS)"
       headerRight={
         <button onClick={fetchMovers} className="osrs-btn" style={{ padding: '2px 8px', fontSize: '10px' }}>
           REFRESH
@@ -57,6 +72,7 @@ export default function PriceTable({ onSelectItem }: { onSelectItem: (itemId: nu
           <table className="data-table">
             <thead>
               <tr>
+                <th style={{ width: '40px' }}>ICON</th>
                 <th>ITEM ID</th>
                 <th style={{ textAlign: 'right' }}>START PRICE (GP)</th>
                 <th style={{ textAlign: 'right' }}>END PRICE (GP)</th>
@@ -67,9 +83,36 @@ export default function PriceTable({ onSelectItem }: { onSelectItem: (itemId: nu
             <tbody>
               {movers.map(mover => {
                 const isPositive = mover.percent_change >= 0;
+                // Defensive casting
+                const moverId = Number(mover.item_id);
                 return (
-                  <tr key={mover.item_id}>
-                    <td style={{ fontWeight: 'bold' }}>Item #{mover.item_id}</td>
+                  <tr key={moverId}>
+                    <td>
+                      {!failedImages[moverId] ? (
+                        <img
+                          src={`https://chisel.weirdgloop.org/static/img/osrs-sprite/${moverId}.png`}
+                          alt={`Item ${moverId}`}
+                          className="item-icon item-icon-sm"
+                          onError={() => handleImageError(moverId)}
+                        />
+                      ) : (
+                        <div style={{
+                          width: '20px',
+                          height: '20px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: 'var(--color-panel-dark)',
+                          border: '1px solid var(--color-border)',
+                          color: 'var(--color-text-muted)',
+                          fontWeight: 'bold',
+                          fontSize: '10px'
+                        }}>
+                          ?
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ fontWeight: 'bold' }}>Item #{moverId}</td>
                     <td style={{ textAlign: 'right' }}>{mover.start_price?.toLocaleString()}</td>
                     <td style={{ textAlign: 'right' }}>{mover.end_price?.toLocaleString()}</td>
                     <td
@@ -80,7 +123,7 @@ export default function PriceTable({ onSelectItem }: { onSelectItem: (itemId: nu
                     </td>
                     <td>
                       <button
-                        onClick={() => onSelectItem(mover.item_id, `Item #${mover.item_id}`)}
+                        onClick={() => onSelectItem(moverId, `Item #${moverId}`)}
                         className="osrs-btn"
                         style={{ padding: '2px 6px', fontSize: '10px', border: '1px solid var(--color-border)' }}
                       >

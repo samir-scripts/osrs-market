@@ -31,12 +31,23 @@ def init_duckdb():
     # Configure S3 extension
     db_conn.execute("INSTALL httpfs;")
     db_conn.execute("LOAD httpfs;")
-    db_conn.execute(f"SET s3_endpoint='{MINIO_ENDPOINT}';")
+    
+    # Strip protocol scheme if present (DuckDB's s3_endpoint expects hostname[:port] only)
+    endpoint = MINIO_ENDPOINT
+    use_ssl = "false"
+    if endpoint.startswith("http://"):
+        endpoint = endpoint[7:]
+    elif endpoint.startswith("https://"):
+        endpoint = endpoint[8:]
+        use_ssl = "true"
+        
+    db_conn.execute(f"SET s3_endpoint='{endpoint}';")
     db_conn.execute(f"SET s3_access_key_id='{MINIO_USER}';")
     db_conn.execute(f"SET s3_secret_access_key='{MINIO_PASSWORD}';")
-    db_conn.execute("SET s3_use_ssl=false;")
+    db_conn.execute(f"SET s3_use_ssl={use_ssl};")
     db_conn.execute("SET s3_url_style='path';")
-    logger.info("DuckDB configured with S3 HTTPFS extension successfully.")
+    logger.info(f"DuckDB configured with S3 HTTPFS extension to {endpoint} (ssl={use_ssl}) successfully.")
+
 
 @app.on_event("startup")
 def startup_event():
@@ -67,30 +78,40 @@ def get_item_history(item_id: int, days: int = Query(7, ge=1, le=90)):
     # Construct a list of partition filters for the dates we want (to prune files)
     # DuckDB will prune based on the glob or hive structure.
     # To be safe and fast, we can use hive partitioning features or direct glob filter.
-    s3_glob_pattern = "s3://osrs-parquet/ticks/*/*/*/*.parquet"
-    
-    # Create thread-safe cursor
-    cursor = db_conn.cursor()
-    
-    query = """
-        SELECT 
-            timestamp,
-            avg_high_price,
-            avg_low_price,
-            high_price_volume,
-            low_price_volume
-        FROM read_parquet(?, hive_partitioning=True)
-        WHERE item_id = ? 
-          AND timestamp >= ?
-        ORDER BY timestamp ASC;
-    """
+    if days >= 7:
+        s3_glob_pattern = "s3://osrs-parquet/marts/daily/daily_item_history.parquet"
+        query = """
+            SELECT 
+                timestamp,
+                avg_high_price,
+                avg_low_price,
+                high_price_volume,
+                low_price_volume
+            FROM read_parquet(?)
+            WHERE item_id = ? 
+              AND timestamp >= ?
+            ORDER BY timestamp ASC;
+        """
+    else:
+        s3_glob_pattern = "s3://osrs-parquet/ticks/*/*/*/*.parquet"
+        query = """
+            SELECT 
+                timestamp,
+                avg_high_price,
+                avg_low_price,
+                high_price_volume,
+                low_price_volume
+            FROM read_parquet(?, hive_partitioning=True)
+            WHERE item_id = ? 
+              AND timestamp >= ?
+            ORDER BY timestamp ASC;
+        """
     
     epoch_limit = int(start_date.timestamp())
     
     try:
-        logger.info(f"Querying history for item {item_id} over the last {days} days...")
-        cursor.execute(query, (s3_glob_pattern, item_id, epoch_limit))
-        results = cursor.fetchall()
+        logger.info(f"Querying history for item {item_id} over the last {days} days using main connection...")
+        results = db_conn.execute(query, (s3_glob_pattern, item_id, epoch_limit)).fetchall()
         
         history = []
         for r in results:
@@ -111,11 +132,12 @@ def get_item_history(item_id: int, days: int = Query(7, ge=1, le=90)):
     except Exception as e:
         logger.error(f"Error querying DuckDB: {e}")
         raise HTTPException(status_code=500, detail=f"Database query error: {str(e)}")
-    finally:
-        cursor.close()
 
 @app.get("/analytics/top-movers")
-def get_top_movers(days: int = Query(24, description="Hours back to calculate top movers", ge=1, le=168)):
+def get_top_movers(
+    days: int = Query(24, description="Hours back to calculate top movers", ge=1, le=168),
+    limit: int = Query(10, description="Limit count of top movers", ge=1, le=100)
+):
     """
     Calculate top price movements (percent increase/decrease) in the last N hours using historical Parquet data.
     """
@@ -123,7 +145,6 @@ def get_top_movers(days: int = Query(24, description="Hours back to calculate to
         raise HTTPException(status_code=500, detail="Database not initialized")
         
     s3_glob_pattern = "s3://osrs-parquet/ticks/*/*/*/*.parquet"
-    cursor = db_conn.cursor()
     
     limit_time = int((datetime.now() - timedelta(hours=days)).timestamp())
     
@@ -152,15 +173,14 @@ def get_top_movers(days: int = Query(24, description="Hours back to calculate to
             ((e.end_price - s.start_price)::DOUBLE / s.start_price) * 100 as percent_change
         FROM starting_prices s
         JOIN ending_prices e ON s.item_id = e.item_id
-        WHERE s.start_price > 0
+        WHERE s.start_price >= 100
         ORDER BY ABS(percent_change) DESC
-        LIMIT 50;
+        LIMIT ?;
     """
     
     try:
-        logger.info(f"Computing top movers over the last {days} hours...")
-        cursor.execute(query, (s3_glob_pattern, limit_time))
-        results = cursor.fetchall()
+        logger.info(f"Computing top movers over the last {days} hours using main connection (limit={limit})...")
+        results = db_conn.execute(query, (s3_glob_pattern, limit_time, limit)).fetchall()
         
         movers = []
         for r in results:
@@ -179,5 +199,4 @@ def get_top_movers(days: int = Query(24, description="Hours back to calculate to
     except Exception as e:
         logger.error(f"Error computing top movers: {e}")
         raise HTTPException(status_code=500, detail=f"Database query error: {str(e)}")
-    finally:
-        cursor.close()
+
