@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 import { client } from '../lib/apollo-client';
 import { GET_ITEMS } from './ItemSidebar';
 import { LoadingScreen } from './LoadingScreen';

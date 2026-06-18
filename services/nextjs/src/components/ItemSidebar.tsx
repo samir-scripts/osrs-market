@@ -103,11 +103,14 @@ export default function ItemSidebar() {
   const setSelectedItemId = useStore((state) => state.setSelectedItemId);
   const setSelectedItemName = useStore((state) => state.setSelectedItemName);
   const setTriggeredAlerts = useStore((state) => state.setTriggeredAlerts);
+  const sidebarOpen = useStore((state) => state.sidebarOpen);
+  const setSidebarOpen = useStore((state) => state.setSidebarOpen);
 
   const onSelectItem = (itemId: number, name: string) => {
     setSelectedItemId(itemId);
     setSelectedItemName(name);
     setTriggeredAlerts([]);
+    setSidebarOpen(false);
   };
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -145,7 +148,11 @@ export default function ItemSidebar() {
   }), [filteredItems, selectedItemId, failedImages, onSelectItem]);
 
   return (
-    <Panel title="OSRS Items" style={{ height: '100%', width: '260px', borderRight: '4px solid var(--color-border)' }}>
+    <Panel 
+      title="OSRS Items" 
+      className={`sidebar ${sidebarOpen ? 'open' : ''}`}
+      style={{ height: '100%', borderRight: '4px solid var(--color-border)' }}
+    >
       <div style={{ marginBottom: '12px' }}>
         <input
           type="text"

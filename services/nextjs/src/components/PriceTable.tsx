@@ -85,12 +85,12 @@ export default function PriceTable() {
           <table className="data-table">
             <thead>
               <tr>
-                <th style={{ width: '40px' }}>ICON</th>
+                <th className="hide-on-mobile" style={{ width: '40px' }}>ICON</th>
                 <th>ITEM</th>
-                <th style={{ textAlign: 'right' }}>START PRICE (GP)</th>
+                <th className="hide-on-mobile" style={{ textAlign: 'right' }}>START PRICE (GP)</th>
                 <th style={{ textAlign: 'right' }}>END PRICE (GP)</th>
                 <th style={{ textAlign: 'right' }}>CHANGE</th>
-                <th>ACTION</th>
+                <th className="hide-on-mobile">ACTION</th>
               </tr>
             </thead>
             <tbody>
@@ -100,8 +100,12 @@ export default function PriceTable() {
                 const moverId = Number(mover.item_id);
                 const itemName = mover.name || itemsMap.get(moverId) || `Item #${moverId}`;
                 return (
-                  <tr key={moverId}>
-                    <td>
+                  <tr 
+                    key={moverId}
+                    onClick={() => onSelectItem(moverId, itemName)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td className="hide-on-mobile">
                       {!failedImages[moverId] ? (
                         <img
                           src={`https://chisel.weirdgloop.org/static/img/osrs-sprite/${moverId}.png`}
@@ -127,7 +131,7 @@ export default function PriceTable() {
                       )}
                     </td>
                     <td style={{ fontWeight: 'bold' }}>{itemName}</td>
-                    <td style={{ textAlign: 'right' }}>{mover.start_price?.toLocaleString()}</td>
+                    <td className="hide-on-mobile" style={{ textAlign: 'right' }}>{mover.start_price?.toLocaleString()}</td>
                     <td style={{ textAlign: 'right' }}>{mover.end_price?.toLocaleString()}</td>
                     <td
                       style={{ textAlign: 'right', fontWeight: 'bold' }}
@@ -135,9 +139,12 @@ export default function PriceTable() {
                     >
                       {isPositive ? '+' : ''}{mover.percent_change}%
                     </td>
-                    <td>
+                    <td className="hide-on-mobile">
                       <button
-                        onClick={() => onSelectItem(moverId, itemName)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectItem(moverId, itemName);
+                        }}
                         className="osrs-btn"
                         style={{ padding: '2px 6px', fontSize: '10px', border: '1px solid var(--color-border)' }}
                       >

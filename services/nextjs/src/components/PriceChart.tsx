@@ -122,25 +122,25 @@ export default function PriceChart() {
     <Panel
       title={`${safeItemName} (ID: ${itemId}) - HISTORICAL PRICE & VOLUME`}
       headerRight={
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           <button
             onClick={() => setDaysframe(1)}
             className="osrs-btn"
-            style={{ padding: '2px 8px', fontSize: '10px', borderColor: daysframe === 1 ? 'var(--color-accent)' : 'var(--color-border)' }}
+            style={{ padding: '4px 10px', fontSize: '11px', borderColor: daysframe === 1 ? 'var(--color-accent)' : 'var(--color-border)' }}
           >
             24H
           </button>
           <button
             onClick={() => setDaysframe(7)}
             className="osrs-btn"
-            style={{ padding: '2px 8px', fontSize: '10px', borderColor: daysframe === 7 ? 'var(--color-accent)' : 'var(--color-border)' }}
+            style={{ padding: '4px 10px', fontSize: '11px', borderColor: daysframe === 7 ? 'var(--color-accent)' : 'var(--color-border)' }}
           >
             7D
           </button>
           <button
             onClick={() => setDaysframe(30)}
             className="osrs-btn"
-            style={{ padding: '2px 8px', fontSize: '10px', borderColor: daysframe === 30 ? 'var(--color-accent)' : 'var(--color-border)' }}
+            style={{ padding: '4px 10px', fontSize: '11px', borderColor: daysframe === 30 ? 'var(--color-accent)' : 'var(--color-border)' }}
           >
             30D
           </button>
@@ -159,7 +159,7 @@ export default function PriceChart() {
         <div style={{ width: '100%', height: '100%', minHeight: '300px' }}>
           <ChartErrorBoundary>
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+              <ComposedChart data={data} margin={{ top: 10, right: 5, left: -15, bottom: 20 }}>
                 <CartesianGrid stroke={OSRS_CHART_THEME.cartesianGrid.stroke} strokeDasharray={OSRS_CHART_THEME.cartesianGrid.strokeDasharray} />
                 <XAxis
                   dataKey="timestamp"

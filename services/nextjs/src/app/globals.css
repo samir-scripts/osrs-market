@@ -61,7 +61,8 @@ body {
 .app-container {
   display: flex;
   height: 100vh;
-  width: 100vw;
+  height: 100dvh;
+  width: 100%;
   overflow: hidden;
 }
 
@@ -71,9 +72,20 @@ body {
   background: var(--color-panel);
   border-right: 4px solid var(--color-border);
   display: flex;
-  flex-direction: col;
+  flex-direction: column;
   height: 100%;
   overflow-y: auto;
+  z-index: 100;
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Sidebar overlay for mobile dismissal */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 90;
 }
 
 /* Main Dashboard Panel */
@@ -85,6 +97,66 @@ body {
   overflow: hidden;
   padding: 12px;
   gap: 12px;
+}
+
+/* Mobile responsive layout overrides */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-y: auto;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    height: 100dvh;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5) !important; /* Mobile exception for drawer depth */
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay.open {
+    display: block;
+  }
+
+  .main-content {
+    height: auto;
+    overflow-y: visible;
+    padding: 8px;
+    gap: 8px;
+  }
+}
+
+/* Responsive Utilities */
+.desktop-only {
+  display: flex !important;
+}
+.mobile-only {
+  display: none !important;
+}
+.hide-on-mobile {
+  /* empty, inherits default display */
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: flex !important;
+  }
+  .hide-on-mobile {
+    display: none !important;
+  }
 }
 
 /* Standard Box Panel */
@@ -238,7 +310,7 @@ body {
 .loading-panel {
   background: var(--color-panel);
   border: 4px solid var(--color-border);
-  width: 450px;
+  width: min(450px, calc(100% - 32px));
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -316,5 +388,91 @@ body {
 .item-icon-lg {
   width: 48px;
   height: 48px;
+}
+
+/* Mobile hiding & utility utilities */
+.mobile-menu-btn {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  
+  .mobile-menu-btn {
+    display: block !important;
+  }
+  
+  .metrics-chart-row {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: unset !important;
+  }
+  
+  .metrics-panel {
+    width: 100% !important;
+    flex-shrink: 1 !important;
+  }
+  
+  .panel-header {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    padding: 8px 12px !important;
+  }
+  
+  .connection-toast {
+    bottom: 0px !important;
+    left: 0px !important;
+    right: 0px !important;
+    border-radius: 0px !important;
+    padding: 10px 14px !important;
+    font-size: 11px !important;
+    box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.5) !important;
+  }
+  
+  .connection-toast.offline {
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    border-top: 2px solid var(--color-accent) !important;
+  }
+  
+  .connection-toast.online {
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    border-top: 2px solid var(--color-positive) !important;
+  }
+}
+
+/* Connection Toast Styles */
+.connection-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  padding: 12px 20px;
+  border-radius: 4px;
+  color: #fff;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.5s ease, border 0.5s ease;
+  animation: slideIn 0.3s ease;
+}
+
+.connection-toast.offline {
+  border: 2px solid var(--color-accent);
+  background: #eb8c00;
+}
+
+.connection-toast.online {
+  border: 2px solid var(--color-positive);
+  background: #2e7d32;
 }
 

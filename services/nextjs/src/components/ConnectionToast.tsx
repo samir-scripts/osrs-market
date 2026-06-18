@@ -32,26 +32,7 @@ export default function ConnectionToast() {
   const isOffline = toastStatus === 'offline';
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: '24px',
-      right: '24px',
-      zIndex: 9999,
-      padding: '12px 20px',
-      borderRadius: '4px',
-      border: isOffline ? '1px solid var(--color-warning)' : '1px solid var(--color-positive)',
-      background: isOffline ? '#eb8c00' : '#2e7d32',
-      color: '#fff',
-      fontFamily: 'var(--font-jetbrains-mono), monospace',
-      fontSize: '12px',
-      fontWeight: 'bold',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px',
-      transition: 'background 0.5s ease, border 0.5s ease',
-      animation: 'slideIn 0.3s ease'
-    }}>
+    <div className={`connection-toast ${isOffline ? 'offline' : 'online'}`}>
       {isOffline ? (
         <span style={{ 
           display: 'inline-block', 

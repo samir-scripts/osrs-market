@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSubscription, gql } from '@apollo/client';
+import { useSubscription } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 import ItemSidebar from './ItemSidebar';
 import Panel from './Panel';
 import PriceChart from './PriceChart';
@@ -46,6 +47,9 @@ export default function DashboardContent() {
   const triggeredAlerts = useStore((state) => state.triggeredAlerts);
   const setTriggeredAlerts = useStore((state) => state.setTriggeredAlerts);
   const removeTriggeredAlert = useStore((state) => state.removeTriggeredAlert);
+  const sidebarOpen = useStore((state) => state.sidebarOpen);
+  const setSidebarOpen = useStore((state) => state.setSidebarOpen);
+  const toggleSidebar = useStore((state) => state.toggleSidebar);
 
   const [largeIconFailed, setLargeIconFailed] = useState(false);
   
@@ -155,6 +159,10 @@ export default function DashboardContent() {
 
   return (
     <div className="app-container">
+      <div 
+        className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} 
+        onClick={() => setSidebarOpen(false)} 
+      />
       <ItemSidebar />
 
       <main className="main-content">
@@ -167,12 +175,28 @@ export default function DashboardContent() {
             background: 'var(--color-panel)',
             border: '2px solid var(--color-border)',
             padding: '8px 16px',
+            flexWrap: 'wrap',
+            gap: '8px',
           }}
         >
-          <h1 style={{ fontSize: '15px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
-            OSRS MARKET VALUE TRACKER
-          </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', height: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <button
+              onClick={toggleSidebar}
+              className="osrs-btn mobile-menu-btn"
+              style={{
+                marginRight: '12px',
+                padding: '4px 8px',
+                fontSize: '12px',
+                fontWeight: 'bold',
+              }}
+            >
+              ITEMS ☰
+            </button>
+            <h1 style={{ fontSize: '15px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+              OSRS MARKET VALUE TRACKER
+            </h1>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', height: '100%', flexWrap: 'wrap' }}>
             <LiveIndicator />
             <UpdateTimer />
           </div>
@@ -187,8 +211,8 @@ export default function DashboardContent() {
           />
         ))}
 
-        <div style={{ display: 'flex', gap: '12px', flex: 1, minHeight: '380px' }}>
-          <Panel title="LIVE MARKET METRICS" style={{ width: '320px' }}>
+        <div className="metrics-chart-row" style={{ display: 'flex', gap: '12px', flex: 1, minHeight: '380px', flexWrap: 'wrap' }}>
+          <Panel title="LIVE MARKET METRICS" className="metrics-panel" style={{ width: '320px', flexShrink: 0 }}>
             {selectedItemId ? (
               <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
                 <div>

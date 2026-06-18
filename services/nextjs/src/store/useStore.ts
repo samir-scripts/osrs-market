@@ -8,6 +8,7 @@ interface AppState {
   lastFetchedAt: number;
   nextUpdateAt: number;
   connectionStatus: 'online' | 'offline';
+  sidebarOpen: boolean;
   
   setSelectedItemId: (id: number | null) => void;
   setSelectedItemName: (name: string) => void;
@@ -17,6 +18,8 @@ interface AppState {
   removeTriggeredAlert: (index: number) => void;
   setSchedule: (lastFetchedAt: number, nextUpdateAt: number) => void;
   setConnectionStatus: (status: 'online' | 'offline') => void;
+  setSidebarOpen: (open: boolean) => void;
+  toggleSidebar: () => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -27,6 +30,7 @@ export const useStore = create<AppState>((set) => ({
   lastFetchedAt: 0,
   nextUpdateAt: 0,
   connectionStatus: 'online',
+  sidebarOpen: false,
   
   setSelectedItemId: (id) => set({ selectedItemId: id }),
   setSelectedItemName: (name) => set({ selectedItemName: name }),
@@ -41,4 +45,6 @@ export const useStore = create<AppState>((set) => ({
   })),
   setSchedule: (lastFetchedAt, nextUpdateAt) => set({ lastFetchedAt, nextUpdateAt }),
   setConnectionStatus: (status) => set({ connectionStatus: status }),
+  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
 }));
