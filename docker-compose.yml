@@ -161,37 +161,20 @@ services:
     networks:
       - osrs-net
 
-  # --- Apache Spark (Local Mode) ---
-  spark:
-    image: apache/spark:3.5.0
-    container_name: osrs-spark
-    user: root
-    environment:
-      - REDPANDA_BROKERS=redpanda:29092
-      - POSTGRES_HOST=osrs-postgres
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+  # --- Caching (Redis) ---
+  redis:
+    image: redis:7-alpine
+    container_name: osrs-redis
     ports:
-      - "8888:8080" # Spark UI
-      - "7077:7077" # Spark Master port
-    volumes:
-      - ./services/spark/jobs:/opt/spark/jobs
-      - minio-data:/opt/spark/checkpoints
+      - "6379:6379"
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
     networks:
       - osrs-net
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redpanda:
-        condition: service_healthy
-    command: >
-      /opt/spark/bin/spark-submit
-      --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,org.apache.spark:spark-avro_2.12:3.5.0,org.postgresql:postgresql:42.6.0,org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262
-      /opt/spark/jobs/price_stream.py
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   # --- Hasura GraphQL Engine ---
   hasura:
@@ -310,27 +293,47 @@ services:
     networks:
       - osrs-net
 
-  fastapi-analytics:
-    build: ./services/analytics
-    container_name: osrs-fastapi-analytics
+  rust-processor:
+    build: ./services/rust-processor
+    container_name: osrs-rust-processor
     ports:
       - "8001:8001"
     environment:
+      REDPANDA_BROKERS: redpanda:29092
+      SCHEMA_REGISTRY_URL: http://redpanda:8081
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      REDIS_URL: ${REDIS_URL}
+      POSTGRES_HOST: osrs-postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      WORKER_COUNT: ${WORKER_COUNT}
+      BATCH_SIZE: ${BATCH_SIZE}
+      MAX_UPLOAD_CONCURRENCY: ${MAX_UPLOAD_CONCURRENCY}
+      PRIORITY_PRICE_THRESHOLD: ${PRIORITY_PRICE_THRESHOLD}
+      PRIORITY_VOLUME_THRESHOLD: ${PRIORITY_VOLUME_THRESHOLD}
     depends_on:
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+      redpanda-setup:
+        condition: service_completed_successfully
       minio:
         condition: service_healthy
       minio-setup:
         condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    networks:
+      - osrs-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - osrs-net
 
   nextjs:
     build: ./services/nextjs
@@ -338,13 +341,13 @@ services:
     ports:
       - "3000:3000"
     environment:
-      ANALYTICS_SERVICE_URL: http://fastapi-analytics:8001
+      ANALYTICS_SERVICE_URL: http://rust-processor:8001
       HASURA_URL: http://hasura:8080/v1/graphql
       PRODUCER_URL: http://fastapi-producer:8000
     depends_on:
       hasura:
         condition: service_healthy
-      fastapi-analytics:
+      rust-processor:
         condition: service_healthy
       fastapi-producer:
         condition: service_started

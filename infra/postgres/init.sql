@@ -39,3 +39,14 @@ CREATE TABLE IF NOT EXISTS public.active_price_alerts (
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Daily Top Movers Table
+CREATE TABLE IF NOT EXISTS public.daily_top_movers (
+    item_id INT REFERENCES public.items_metadata(item_id) ON DELETE CASCADE,
+    name VARCHAR(255),
+    start_price BIGINT,
+    end_price BIGINT,
+    pct_change DOUBLE PRECISION,
+    volume BIGINT,
+    computed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

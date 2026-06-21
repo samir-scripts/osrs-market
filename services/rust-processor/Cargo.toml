@@ -1,0 +1,29 @@
+[package]
+name = "osrs-rust-processor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.35", features = ["full"] }
+rayon = "1.8"
+rdkafka = { version = "0.36", features = ["cmake-build"] }
+apache-avro = "0.16"
+arrow = "50.0"
+parquet = "50.0"
+aws-config = { version = "1.1", features = ["behavior-version-latest"] }
+aws-sdk-s3 = { version = "1.14", features = ["behavior-version-latest"] }
+actix-web = "4.4"
+redis = { version = "0.24", features = ["tokio-comp", "aio", "connection-manager"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio-postgres = "0.7"
+deadpool-postgres = "0.12"
+duckdb = "1.0"
+dotenvy = "0.15"
+log = "0.4"
+env_logger = "0.11"
+envy = "0.4"
+chrono = { version = "=0.4.38", features = ["serde"] }
+bytes = "1.5"
+futures = "0.3"
+anyhow = "1.0"

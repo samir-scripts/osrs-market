@@ -5,21 +5,27 @@ export async function GET(
   { params }: { params: Promise<{ item_id: string }> }
 ) {
   const { item_id } = await params;
-  const { searchParams } = new URL(request.url);
-  const days = searchParams.get('days') || '7';
   
-  const analyticsUrl = process.env.ANALYTICS_SERVICE_URL || 'http://fastapi-analytics:8001';
   try {
-    const res = await fetch(`${analyticsUrl}/items/${item_id}/history?days=${days}`, {
-      cache: 'no-store',
-    });
+    const backendUrl = process.env.ANALYTICS_SERVICE_URL || 'http://rust-processor:8001';
+    const res = await fetch(`${backendUrl}/items/${item_id}/history`);
+    
     if (!res.ok) {
-      throw new Error(`Analytics service returned ${res.status}`);
+      return NextResponse.json({ data: [] });
     }
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch (error: any) {
+    
+    const backendData = await res.json();
+    const mappedData = (backendData.data || []).map((tick: any) => ({
+      timestamp: tick.timestamp,
+      avg_high_price: tick.avgHighPrice ?? null,
+      avg_low_price: tick.avgLowPrice ?? null,
+      high_price_volume: tick.highPriceVolume ?? null,
+      low_price_volume: tick.lowPriceVolume ?? null,
+    }));
+    return NextResponse.json({ data: mappedData });
+  } catch (error: unknown) {
     console.error(`Error in API /api/analytics/history/${item_id}:`, error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

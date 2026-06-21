@@ -1,0 +1,10 @@
+/Users/samirkatakamsetty/Desktop/Home/Data Engineering Projects/osrs-market/services/rust-processor/target/debug/deps/spin-5d53a3df756c1495.d: /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/lib.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/mutex.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/mutex/spin.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/once.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/relax.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/rwlock.rs
+
+/Users/samirkatakamsetty/Desktop/Home/Data Engineering Projects/osrs-market/services/rust-processor/target/debug/deps/libspin-5d53a3df756c1495.rmeta: /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/lib.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/mutex.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/mutex/spin.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/once.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/relax.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/rwlock.rs
+
+/Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/lib.rs:
+/Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/mutex.rs:
+/Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/mutex/spin.rs:
+/Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/once.rs:
+/Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/relax.rs:
+/Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spin-0.10.0/src/rwlock.rs:
