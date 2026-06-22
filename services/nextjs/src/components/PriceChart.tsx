@@ -60,6 +60,8 @@ class ChartErrorBoundary extends React.Component<{ children: React.ReactNode }, 
   }
 }
 
+const historyCache: Record<string, { data: PriceTick[], refreshKey: number }> = {};
+
 export default function PriceChart() {
   const itemId = useStore((state) => state.selectedItemId);
   const itemName = useStore((state) => state.selectedItemName);
@@ -72,14 +74,26 @@ export default function PriceChart() {
 
   const fetchHistory = async (signal: AbortSignal) => {
     if (!itemId) return;
+
+    const cacheKey = `${itemId}-${daysframe}`;
+    const cached = historyCache[cacheKey];
+
+    if (cached && cached.refreshKey === refreshKey) {
+      setData(cached.data);
+      setError(null);
+      return;
+    }
+
     try {
       setLoading(true);
       const res = await fetch(`/api/analytics/history/${itemId}?days=${daysframe}`, { signal });
       if (!res.ok) throw new Error('Failed to fetch price history');
       const json = await res.json();
       if (!signal.aborted) {
-        setData(json.data || []);
+        const fetchedData = json.data || [];
+        setData(fetchedData);
         setError(null);
+        historyCache[cacheKey] = { data: fetchedData, refreshKey };
       }
     } catch (err: any) {
       if (err.name === 'AbortError' || signal.aborted) {
