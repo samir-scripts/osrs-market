@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { ResponsiveContainer, ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import React, { useState, useEffect, useRef } from 'react';
+import { ResponsiveContainer, ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import Panel from './Panel';
 import { useStore } from '../store/useStore';
 
@@ -14,23 +14,23 @@ interface PriceTick {
 }
 
 const OSRS_CHART_THEME = {
-  cartesianGrid: { stroke: '#474745', strokeDasharray: '3 3' },
-  xAxis:         { stroke: '#694D23', tick: { fill: '#A89060', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' } },
-  yAxisPrice:    { stroke: '#694D23', tick: { fill: '#A89060', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' } },
-  yAxisVolume:   { stroke: '#694D23', tick: { fill: '#A89060', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' }, orientation: 'right' as const },
+  cartesianGrid: { stroke: '#333333', strokeDasharray: '0' },
+  xAxis:         { stroke: '#f5f5f4', tick: { fill: '#a0a0a0', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' } },
+  yAxisPrice:    { stroke: '#f5f5f4', tick: { fill: '#a0a0a0', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' } },
+  yAxisVolume:   { stroke: '#f5f5f4', tick: { fill: '#a0a0a0', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' }, orientation: 'right' as const },
   tooltip: {
     contentStyle: {
-      background: '#46433A',
-      border: '2px solid #694D23',
+      background: '#0c0a09',
+      border: '1px solid #f5f5f4',
       borderRadius: 0,
       fontFamily: "var(--font-jetbrains-mono), monospace",
       fontSize: 12,
-      color: '#FFCF3F',
+      color: '#f5f5f4',
     },
   },
-  highPrice: '#00C800',
-  lowPrice:  '#FF0000',
-  volume:    '#E6A519',
+  highPrice: '#f5f5f4',
+  lowPrice:  '#a0a0a0',
+  volume:    '#333333',
 };
 
 // React 19 compatible Error Boundary to catch Recharts rendering failures
@@ -72,6 +72,9 @@ export default function PriceChart() {
   const [error, setError] = useState<string | null>(null);
   const [daysframe, setDaysframe] = useState(7);
 
+  const prevItemIdRef = useRef<number | null>(null);
+  const prevDaysframeRef = useRef<number>(7);
+
   const fetchHistory = async (signal: AbortSignal) => {
     if (!itemId) return;
 
@@ -81,11 +84,18 @@ export default function PriceChart() {
     if (cached && cached.refreshKey === refreshKey) {
       setData(cached.data);
       setError(null);
+      prevItemIdRef.current = itemId;
+      prevDaysframeRef.current = daysframe;
       return;
     }
 
+    const isNewItemOrFrame = prevItemIdRef.current !== itemId || prevDaysframeRef.current !== daysframe;
+
     try {
-      setLoading(true);
+      if (isNewItemOrFrame || data.length === 0) {
+        setLoading(true);
+        setData([]); // Clear old data if changing items to avoid showing wrong chart
+      }
       const res = await fetch(`/api/analytics/history/${itemId}?days=${daysframe}`, { signal });
       if (!res.ok) throw new Error('Failed to fetch price history');
       const json = await res.json();
@@ -94,6 +104,8 @@ export default function PriceChart() {
         setData(fetchedData);
         setError(null);
         historyCache[cacheKey] = { data: fetchedData, refreshKey };
+        prevItemIdRef.current = itemId;
+        prevDaysframeRef.current = daysframe;
       }
     } catch (err: any) {
       if (err.name === 'AbortError' || signal.aborted) {
@@ -205,22 +217,18 @@ export default function PriceChart() {
                 />
                 <Legend verticalAlign="top" height={36} wrapperStyle={{ fontFamily: 'var(--font-jetbrains-mono)', fontSize: '11px' }} />
                 
-                {/* Volume Area (drawn first/behind) */}
-                <Area
+                {/* Volume Bar (drawn first/behind) */}
+                <Bar
                   yAxisId="volume"
-                  type="monotone"
                   dataKey="high_price_volume"
                   name="Volume (High Traded)"
                   fill={OSRS_CHART_THEME.volume}
-                  stroke={OSRS_CHART_THEME.volume}
-                  fillOpacity={0.2}
-                  dot={false}
                 />
 
                 {/* Price Lines */}
                 <Line
                   yAxisId="price"
-                  type="monotone"
+                  type="stepAfter"
                   dataKey="avg_high_price"
                   name="Avg High Price"
                   stroke={OSRS_CHART_THEME.highPrice}
@@ -229,7 +237,7 @@ export default function PriceChart() {
                 />
                 <Line
                   yAxisId="price"
-                  type="monotone"
+                  type="stepAfter"
                   dataKey="avg_low_price"
                   name="Avg Low Price"
                   stroke={OSRS_CHART_THEME.lowPrice}

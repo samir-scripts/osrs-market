@@ -14,6 +14,12 @@ CREATE TABLE IF NOT EXISTS public.items_metadata (
     last_synced TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Item Types Table (populated separately from the main DAG)
+CREATE TABLE IF NOT EXISTS public.item_types (
+    item_id INT PRIMARY KEY REFERENCES public.items_metadata(item_id) ON DELETE CASCADE,
+    type_name VARCHAR(100) NOT NULL
+);
+
 -- Latest Computed Prices & Metrics Table
 CREATE TABLE IF NOT EXISTS public.latest_item_prices (
     item_id INT PRIMARY KEY REFERENCES public.items_metadata(item_id) ON DELETE CASCADE,

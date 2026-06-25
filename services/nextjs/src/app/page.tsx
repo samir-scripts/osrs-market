@@ -1,17 +1,5 @@
-'use client';
-
-import React from 'react';
-import { ApolloProvider } from '@apollo/client/react';
-import { client } from '../lib/apollo-client';
-import ReadinessGate from '../components/ReadinessGate';
-import DashboardContent from '../components/DashboardContent';
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-  return (
-    <ApolloProvider client={client}>
-      <ReadinessGate>
-        <DashboardContent />
-      </ReadinessGate>
-    </ApolloProvider>
-  );
+  redirect('/catalogue');
 }

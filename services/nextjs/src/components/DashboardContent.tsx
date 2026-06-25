@@ -3,10 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSubscription } from '@apollo/client/react';
 import { gql } from '@apollo/client';
-import ItemSidebar from './ItemSidebar';
 import Panel from './Panel';
 import PriceChart from './PriceChart';
-import PriceTable from './PriceTable';
 import StatRow from './StatRow';
 import LiveIndicator from './LiveIndicator';
 import AlertBanner from './AlertBanner';
@@ -47,9 +45,6 @@ export default function DashboardContent() {
   const triggeredAlerts = useStore((state) => state.triggeredAlerts);
   const setTriggeredAlerts = useStore((state) => state.setTriggeredAlerts);
   const removeTriggeredAlert = useStore((state) => state.removeTriggeredAlert);
-  const sidebarOpen = useStore((state) => state.sidebarOpen);
-  const setSidebarOpen = useStore((state) => state.setSidebarOpen);
-  const toggleSidebar = useStore((state) => state.toggleSidebar);
 
   const [largeIconFailed, setLargeIconFailed] = useState(false);
   
@@ -157,42 +152,49 @@ export default function DashboardContent() {
     }
   };
 
-  return (
-    <div className="app-container">
-      <div 
-        className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} 
-        onClick={() => setSidebarOpen(false)} 
-      />
-      <ItemSidebar />
+  if (priceLoading) {
+    return (
+      <div style={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px', letterSpacing: '0.1em', color: '#f5f5f4' }}>
+          [ LOADING DASHBOARD DATA ]
+        </div>
+        <div style={{ width: '300px', height: '2px', background: '#333', overflow: 'hidden', position: 'relative' }}>
+          <div style={{ 
+            width: '40%', 
+            height: '100%', 
+            background: '#44ff44', 
+            position: 'absolute',
+            animation: 'loadingBar 1.5s infinite ease-in-out' 
+          }} />
+        </div>
+        <style>{`
+          @keyframes loadingBar {
+            0% { left: -40%; }
+            100% { left: 100%; }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
-      <main className="main-content">
+  return (
+    <div className="app-container" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <main className="main-content" style={{ flex: 1, overflowY: 'auto' }}>
         <ConnectionToast />
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            background: 'var(--color-panel)',
-            border: '2px solid var(--color-border)',
+            background: 'transparent',
+            border: '1px solid var(--color-border)',
             padding: '8px 16px',
             flexWrap: 'wrap',
             gap: '8px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <button
-              onClick={toggleSidebar}
-              className="osrs-btn mobile-menu-btn"
-              style={{
-                marginRight: '12px',
-                padding: '4px 8px',
-                fontSize: '12px',
-                fontWeight: 'bold',
-              }}
-            >
-              ITEMS ☰
-            </button>
-            <h1 style={{ fontSize: '15px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+            <h1 style={{ fontSize: '15px', fontWeight: 'bold', letterSpacing: '0.05em', margin: 0 }}>
               OSRS MARKET VALUE TRACKER
             </h1>
           </div>
@@ -221,7 +223,7 @@ export default function DashboardContent() {
                     alignItems: 'center', 
                     gap: '12px', 
                     marginBottom: '12px', 
-                    borderBottom: '2px solid var(--color-border)',
+                    borderBottom: '1px solid var(--color-border)',
                     paddingBottom: '8px'
                   }}>
                     {!largeIconFailed ? (
@@ -238,8 +240,8 @@ export default function DashboardContent() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: 'var(--color-panel-dark)',
-                        border: '2px solid var(--color-border)',
+                        background: 'transparent',
+                        border: '1px solid var(--color-border)',
                         color: 'var(--color-text-muted)',
                         fontWeight: 'bold',
                         fontSize: '18px'
@@ -247,7 +249,7 @@ export default function DashboardContent() {
                         ?
                       </div>
                     )}
-                    <h2 style={{ fontSize: '16px', color: 'var(--color-accent)', margin: 0 }}>
+                    <h2 style={{ fontSize: '16px', color: 'var(--color-text)', margin: 0 }}>
                       {selectedItemName.toUpperCase()}
                     </h2>
                   </div>
@@ -283,7 +285,7 @@ export default function DashboardContent() {
                   )}
                 </div>
 
-                <div style={{ borderTop: '2px solid var(--color-border)', paddingTop: '12px', marginTop: '12px' }}>
+                <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '12px', marginTop: '12px' }}>
                   <h3 style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
                     SET PRICE ALERT
                   </h3>
@@ -322,14 +324,6 @@ export default function DashboardContent() {
 
           {selectedItemId && (
             <PriceChart />
-          )}
-        </div>
-
-        <div style={{ flex: 1, minHeight: '280px', display: 'flex' }}>
-          {selectedItemId && (
-            <div style={{ flex: 1 }}>
-              <PriceTable />
-            </div>
           )}
         </div>
       </main>

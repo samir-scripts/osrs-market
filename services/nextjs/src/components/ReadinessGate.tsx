@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client';
 import { client } from '../lib/apollo-client';
-import { GET_ITEMS } from './ItemSidebar';
 import { LoadingScreen } from './LoadingScreen';
 
 const CHECK_READINESS = gql`
@@ -18,6 +17,17 @@ const CHECK_READINESS = gql`
       aggregate {
         count
       }
+    }
+  }
+`;
+
+const GET_ITEMS = gql`
+  query GetItems {
+    items_metadata(order_by: { name: asc }) {
+      item_id
+      name
+      value
+      members
     }
   }
 `;

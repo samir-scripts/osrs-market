@@ -8,9 +8,9 @@ RUN apt-get update && apt-get install -y cmake build-essential libssl-dev pkg-co
 # Download DuckDB
 RUN arch=$(uname -m) && \
     if [ "$arch" = "aarch64" ]; then \
-        curl -L https://github.com/duckdb/duckdb/releases/download/v1.0.0/libduckdb-linux-aarch64.zip -o duckdb.zip; \
+        curl --http1.1 -fL --retry 5 --retry-delay 2 https://github.com/duckdb/duckdb/releases/download/v1.0.0/libduckdb-linux-aarch64.zip -o duckdb.zip; \
     else \
-        curl -L https://github.com/duckdb/duckdb/releases/download/v1.0.0/libduckdb-linux-amd64.zip -o duckdb.zip; \
+        curl --http1.1 -fL --retry 5 --retry-delay 2 https://github.com/duckdb/duckdb/releases/download/v1.0.0/libduckdb-linux-amd64.zip -o duckdb.zip; \
     fi && \
     unzip duckdb.zip -d /usr/local/lib/ && \
     rm duckdb.zip

@@ -79,6 +79,16 @@ def track_tables():
     }
     send_metadata_query(track_alerts)
 
+    # 4. Track item_types
+    track_types = {
+        "type": "pg_track_table",
+        "args": {
+            "source": "default",
+            "table": {"schema": "public", "name": "item_types"}
+        }
+    }
+    send_metadata_query(track_types)
+
 def track_relationships():
     print("Tracking relationships in Hasura...")
     
@@ -112,6 +122,25 @@ def track_relationships():
         }
     }
     send_metadata_query(rel_meta_to_prices)
+
+    # 3. Object relationship: items_metadata -> item_types (using reverse FK)
+    rel_meta_to_type = {
+        "type": "pg_create_object_relationship",
+        "args": {
+            "source": "default",
+            "table": {"schema": "public", "name": "items_metadata"},
+            "name": "item_type",
+            "using": {
+                "manual_configuration": {
+                    "remote_table": {"schema": "public", "name": "item_types"},
+                    "column_mapping": {
+                        "item_id": "item_id"
+                    }
+                }
+            }
+        }
+    }
+    send_metadata_query(rel_meta_to_type)
 
 def main():
     if not wait_for_hasura():

@@ -2,9 +2,20 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 import Panel from './Panel';
 import { useStore } from '../store/useStore';
-import { GET_ITEMS } from './ItemSidebar';
+
+const GET_ITEMS = gql`
+  query GetItems {
+    items_metadata(order_by: { name: asc }) {
+      item_id
+      name
+      value
+      members
+    }
+  }
+`;
 
 interface Mover {
   item_id: number;
@@ -49,7 +60,9 @@ export default function PriceTable() {
 
   const fetchMovers = async () => {
     try {
-      setLoading(true);
+      if (movers.length === 0) {
+        setLoading(true);
+      }
       const res = await fetch('/api/analytics/top-movers');
       if (!res.ok) throw new Error('Failed to fetch top movers');
       const data = await res.json();

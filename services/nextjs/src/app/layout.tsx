@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import TopNav from "../components/TopNav";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
@@ -19,7 +20,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${jetbrainsMono.variable}`}>
-      <body>{children}</body>
+      <body style={{ display: 'flex', flexDirection: 'column', height: '100vh', margin: 0 }}>
+        <TopNav />
+        <div style={{ flex: 1, overflow: 'hidden' }}>
+          {children}
+        </div>
+      </body>
     </html>
   );
 }
