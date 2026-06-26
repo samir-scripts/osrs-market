@@ -78,25 +78,24 @@ export default function PriceChart() {
   const fetchHistory = async (signal: AbortSignal) => {
     if (!itemId) return;
 
-    const cacheKey = `${itemId}-${daysframe}`;
+    const cacheKey = `${itemId}-30`;
     const cached = historyCache[cacheKey];
 
     if (cached && cached.refreshKey === refreshKey) {
       setData(cached.data);
       setError(null);
       prevItemIdRef.current = itemId;
-      prevDaysframeRef.current = daysframe;
       return;
     }
 
-    const isNewItemOrFrame = prevItemIdRef.current !== itemId || prevDaysframeRef.current !== daysframe;
+    const isNewItem = prevItemIdRef.current !== itemId;
 
     try {
-      if (isNewItemOrFrame || data.length === 0) {
+      if (isNewItem || data.length === 0) {
         setLoading(true);
         setData([]); // Clear old data if changing items to avoid showing wrong chart
       }
-      const res = await fetch(`/api/analytics/history/${itemId}?days=${daysframe}`, { signal });
+      const res = await fetch(`/api/analytics/history/${itemId}?days=30`, { signal });
       if (!res.ok) throw new Error('Failed to fetch price history');
       const json = await res.json();
       if (!signal.aborted) {
@@ -105,7 +104,6 @@ export default function PriceChart() {
         setError(null);
         historyCache[cacheKey] = { data: fetchedData, refreshKey };
         prevItemIdRef.current = itemId;
-        prevDaysframeRef.current = daysframe;
       }
     } catch (err: any) {
       if (err.name === 'AbortError' || signal.aborted) {
@@ -125,7 +123,16 @@ export default function PriceChart() {
     return () => {
       controller.abort();
     };
-  }, [itemId, daysframe, refreshKey]);
+  }, [itemId, refreshKey]);
+
+  const filteredData = React.useMemo(() => {
+    if (data.length === 0) return [];
+    if (daysframe === 30) return data;
+    
+    const maxTimestamp = Math.max(...data.map(d => d.timestamp));
+    const cutoff = maxTimestamp - (daysframe * 86400);
+    return data.filter(d => d.timestamp >= cutoff);
+  }, [data, daysframe]);
 
   const formatDate = (epochSec: number) => {
     const d = new Date(epochSec * 1000);
@@ -176,16 +183,16 @@ export default function PriceChart() {
     >
       {loading && <div style={{ padding: '24px', color: 'var(--color-text-muted)' }}>LOADING HISTORICAL DATA...</div>}
       {error && <div style={{ padding: '24px', color: 'var(--color-negative)' }}>{error}</div>}
-      {!loading && !error && data.length === 0 && (
+      {!loading && !error && filteredData.length === 0 && (
         <div style={{ padding: '24px', color: 'var(--color-text-muted)', textAlign: 'center' }}>
           NO HISTORICAL DATA FOR THIS ITEM IN MINIO PARQUET YET
         </div>
       )}
-      {!loading && !error && data.length > 0 && (
+      {!loading && !error && filteredData.length > 0 && (
         <div style={{ width: '100%', height: '100%', minHeight: '300px' }}>
           <ChartErrorBoundary>
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={data} margin={{ top: 10, right: 5, left: -15, bottom: 20 }}>
+              <ComposedChart data={filteredData} margin={{ top: 10, right: 5, left: -15, bottom: 20 }}>
                 <CartesianGrid stroke={OSRS_CHART_THEME.cartesianGrid.stroke} strokeDasharray={OSRS_CHART_THEME.cartesianGrid.strokeDasharray} />
                 <XAxis
                   dataKey="timestamp"

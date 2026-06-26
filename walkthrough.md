@@ -1,7 +1,19 @@
-# Walkthrough - OSRS Market Tracker (Phases 1 & 2)
+# Walkthrough - OSRS Market Tracker
 
-This walkthrough details the changes made and verified to satisfy the requirements for both Phase 1 and Phase 2.
+This walkthrough details the changes made and verified to satisfy the requirements across phases.
 
+## Phase 4 Changes
+
+### 1. Robust Time-Series Cutoff (rust-processor)
+- Fixed an issue where data older than the system time minus 7 days would not render in the 24H and 7D charts. The dataset in MinIO was generated in the past, meaning calculations against `SystemTime::now()` missed it entirely.
+- Updated `get_item_history` in `services/rust-processor/src/api.rs` to compute the time cutoff relative to the `MAX(timestamp)` available for the requested `item_id`. This guarantees the UI shows the last 24 hours or 7 days of *available* data.
+
+### 2. Client-Side Chart Filtering (Next.js)
+- Refactored `PriceChart.tsx` to optimize network usage and improve UI responsiveness.
+- The component now fires a single request to the backend for the maximum 30-day window.
+- The 24H, 7D, and 30D UI buttons no longer trigger new API fetches; they now dynamically slice the cached data array locally using React `useMemo`.
+
+---
 ## Phase 3 Changes
 
 ### 1. Item Names in "Top 10 Price Movers"

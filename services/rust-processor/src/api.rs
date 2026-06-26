@@ -25,11 +25,7 @@ async fn top_movers(_data: web::Data<AppState>) -> impl Responder {
 
 async fn get_item_history(path: web::Path<i64>, query: web::Query<HistoryQuery>, _data: web::Data<AppState>) -> impl Responder {
     let item_id = path.into_inner();
-    let days = query.days.unwrap_or(7);
-    let cutoff = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_secs() as i64 - (days * 86400);
+    let days = query.days.unwrap_or(30);
 
     let result = actix_web::web::block(move || {
         use duckdb::Connection;
@@ -51,8 +47,12 @@ async fn get_item_history(path: web::Path<i64>, query: web::Query<HistoryQuery>,
         let query = format!(
             "SELECT timestamp, avg_high_price, high_price_volume, avg_low_price, low_price_volume 
              FROM read_parquet('s3://osrs-parquet/ticks/**/*.parquet', hive_partitioning=1) 
-             WHERE item_id = {} AND timestamp >= {} ORDER BY timestamp ASC",
-            item_id, cutoff
+             WHERE item_id = {0} AND timestamp >= (
+                 SELECT COALESCE(MAX(timestamp), 0) - {1}
+                 FROM read_parquet('s3://osrs-parquet/ticks/**/*.parquet', hive_partitioning=1) 
+                 WHERE item_id = {0}
+             ) ORDER BY timestamp ASC",
+            item_id, days * 86400
         );
 
         let mut stmt = conn.prepare(&query).map_err(|e| e.to_string())?;
