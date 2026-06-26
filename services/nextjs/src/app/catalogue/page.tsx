@@ -16,7 +16,7 @@ const GET_CATALOGUE = gql`
       item_type {
         type_name
       }
-      prices(limit: 1, order_by: { last_updated: desc }) {
+      prices(limit: 2, order_by: { last_updated: desc }) {
         avg_high_price
         avg_low_price
         high_price_volume
@@ -40,14 +40,31 @@ function CatalogueContent() {
   const processedItems = useMemo(() => {
     let baseItems = items.map((item: any) => {
       const priceData = item.prices?.[0] || {};
+      const prevPriceData = item.prices?.[1];
       const price = priceData.avg_high_price || item.value || 0;
       const volume = (priceData.high_price_volume || 0) + (priceData.low_price_volume || 0);
       const type = item.item_type?.type_name || 'Misc';
+      
+      let priceChange = 0;
+      let volumeChange = 0;
+      let hasPrevData = false;
+
+      if (prevPriceData) {
+        hasPrevData = true;
+        const prevPrice = prevPriceData.avg_high_price || item.value || 0;
+        const prevVolume = (prevPriceData.high_price_volume || 0) + (prevPriceData.low_price_volume || 0);
+        priceChange = price - prevPrice;
+        volumeChange = volume - prevVolume;
+      }
+
       return {
         ...item,
         currentPrice: price,
         volume,
-        type
+        type,
+        priceChange,
+        volumeChange,
+        hasPrevData
       };
     });
 
@@ -74,14 +91,14 @@ function CatalogueContent() {
 
   if (loading) return (
     <div style={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px', letterSpacing: '0.1em', color: '#f5f5f4' }}>
+      <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px', letterSpacing: '0.1em', color: 'var(--color-text)' }}>
         [ LOADING MARKET DATA ]
       </div>
-      <div style={{ width: '300px', height: '2px', background: '#333', overflow: 'hidden', position: 'relative' }}>
+      <div style={{ width: '300px', height: '2px', background: 'var(--color-border-light)', overflow: 'hidden', position: 'relative' }}>
         <div style={{ 
           width: '40%', 
           height: '100%', 
-          background: '#44ff44', 
+          background: 'var(--color-positive)', 
           position: 'absolute',
           animation: 'loadingBar 1.5s infinite ease-in-out' 
         }} />
@@ -94,7 +111,7 @@ function CatalogueContent() {
       `}</style>
     </div>
   );
-  if (error) return <div style={{ padding: '24px', color: '#ff4444' }}>[ ERROR LOADING CATALOGUE ]</div>;
+  if (error) return <div style={{ padding: '24px', color: 'var(--color-negative)' }}>[ ERROR LOADING CATALOGUE ]</div>;
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -113,7 +130,7 @@ function CatalogueContent() {
   const thStyle = {
     padding: '12px 16px',
     textAlign: 'left' as const,
-    borderBottom: '1px solid #f5f5f4',
+    borderBottom: '1px solid var(--color-border)',
     cursor: 'pointer',
     userSelect: 'none' as const,
     whiteSpace: 'nowrap' as const,
@@ -121,7 +138,14 @@ function CatalogueContent() {
 
   const tdStyle = {
     padding: '12px 16px',
-    borderBottom: '1px solid #333',
+    borderBottom: '1px solid var(--color-border-light)',
+  };
+
+  const renderIndicator = (change: number, hasData: boolean) => {
+    if (!hasData) return <span style={{ color: 'var(--color-text-muted)', marginLeft: '8px' }}>=</span>;
+    if (change > 0) return <span className="text-positive" style={{ marginLeft: '8px' }}>▲</span>;
+    if (change < 0) return <span className="text-negative" style={{ marginLeft: '8px' }}>▼</span>;
+    return <span style={{ color: 'var(--color-text-muted)', marginLeft: '8px' }}>=</span>;
   };
 
   return (
@@ -140,9 +164,9 @@ function CatalogueContent() {
         />
       </div>
       
-      <div style={{ border: '1px solid #f5f5f4', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ border: '1px solid var(--color-border)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-          <thead style={{ background: '#f5f5f4', color: '#0c0a09', position: 'sticky', top: 0, zIndex: 10 }}>
+          <thead style={{ background: 'var(--color-text)', color: 'var(--color-bg)', position: 'sticky', top: 0, zIndex: 10 }}>
             <tr>
               <th style={thStyle} onClick={() => handleSort('name')}>Item {getSortIndicator('name')}</th>
               <th style={thStyle} onClick={() => handleSort('type')}>Type {getSortIndicator('type')}</th>
@@ -155,9 +179,9 @@ function CatalogueContent() {
               <tr 
                 key={item.item_id}
                 onClick={() => router.push(`/item/${item.item_id}`)}
-                style={{ cursor: 'pointer', background: '#0c0a09' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#1a1a1a'}
-                onMouseLeave={(e) => e.currentTarget.style.background = '#0c0a09'}
+                style={{ cursor: 'pointer', background: 'var(--color-bg)' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-panel-dark)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'var(--color-bg)'}
               >
                 <td style={tdStyle}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -175,9 +199,9 @@ function CatalogueContent() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: '#1a1a1a',
-                        border: '1px solid #333',
-                        color: '#666',
+                        background: 'var(--color-panel-dark)',
+                        border: '1px solid var(--color-border-light)',
+                        color: 'var(--color-text-dim)',
                         fontWeight: 'bold',
                         fontSize: '10px'
                       }}>
@@ -187,12 +211,14 @@ function CatalogueContent() {
                     {item.name}
                   </div>
                 </td>
-                <td style={{...tdStyle, color: '#aaa'}}>{item.type}</td>
+                <td style={{...tdStyle, color: 'var(--color-text-muted)'}}>{item.type}</td>
                 <td style={{...tdStyle, textAlign: 'right', fontFamily: 'monospace'}}>
                   {item.currentPrice.toLocaleString()} gp
+                  {renderIndicator(item.priceChange, item.hasPrevData)}
                 </td>
                 <td style={{...tdStyle, textAlign: 'right', fontFamily: 'monospace'}}>
                   {item.volume.toLocaleString()}
+                  {renderIndicator(item.volumeChange, item.hasPrevData)}
                 </td>
               </tr>
             ))}

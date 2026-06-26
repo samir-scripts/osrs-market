@@ -14,23 +14,23 @@ interface PriceTick {
 }
 
 const OSRS_CHART_THEME = {
-  cartesianGrid: { stroke: '#333333', strokeDasharray: '0' },
-  xAxis:         { stroke: '#f5f5f4', tick: { fill: '#a0a0a0', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' } },
-  yAxisPrice:    { stroke: '#f5f5f4', tick: { fill: '#a0a0a0', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' } },
-  yAxisVolume:   { stroke: '#f5f5f4', tick: { fill: '#a0a0a0', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' }, orientation: 'right' as const },
+  cartesianGrid: { stroke: 'var(--color-border-light)', strokeDasharray: '0' },
+  xAxis:         { stroke: 'var(--color-border)', tick: { fill: 'var(--color-text-muted)', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' } },
+  yAxisPrice:    { stroke: 'var(--color-border)', tick: { fill: 'var(--color-text-muted)', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' } },
+  yAxisVolume:   { stroke: 'var(--color-border)', tick: { fill: 'var(--color-text-muted)', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' }, orientation: 'right' as const },
   tooltip: {
     contentStyle: {
-      background: '#0c0a09',
-      border: '1px solid #f5f5f4',
+      background: 'var(--color-bg)',
+      border: '1px solid var(--color-border)',
       borderRadius: 0,
       fontFamily: "var(--font-jetbrains-mono), monospace",
       fontSize: 12,
-      color: '#f5f5f4',
+      color: 'var(--color-text)',
     },
   },
-  highPrice: '#f5f5f4',
-  lowPrice:  '#a0a0a0',
-  volume:    '#333333',
+  highPrice: 'var(--color-positive)',
+  lowPrice:  'var(--color-negative)',
+  volume:    'var(--color-text)',
 };
 
 // React 19 compatible Error Boundary to catch Recharts rendering failures
@@ -230,6 +230,7 @@ export default function PriceChart() {
                   dataKey="high_price_volume"
                   name="Volume (High Traded)"
                   fill={OSRS_CHART_THEME.volume}
+                  fillOpacity={0.2}
                 />
 
                 {/* Price Lines */}

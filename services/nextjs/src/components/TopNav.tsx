@@ -3,9 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTheme } from './ThemeProvider';
+import { Sun, Moon } from 'lucide-react';
 
 export default function TopNav() {
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
   // Safe check since it might be null during SSR or certain next phases
   const safePathname = pathname || '';
 
@@ -13,26 +16,26 @@ export default function TopNav() {
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      background: '#0c0a09',
-      borderBottom: '1px solid #f5f5f4',
+      background: 'var(--color-bg)',
+      borderBottom: '1px solid var(--color-border)',
       padding: '0 16px',
       height: '48px',
       gap: '24px',
       flexShrink: 0
     }}>
-      <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#f5f5f4', letterSpacing: '0.05em' }}>
+      <div style={{ fontWeight: 'bold', fontSize: '16px', color: 'var(--color-text)', letterSpacing: '0.05em' }}>
         OSRS MARKET
       </div>
       
-      <div style={{ display: 'flex', gap: '16px', height: '100%' }}>
+      <div style={{ display: 'flex', gap: '16px', height: '100%', flex: 1 }}>
         <Link 
           href="/catalogue"
           style={{
             display: 'flex',
             alignItems: 'center',
             height: '100%',
-            color: safePathname.startsWith('/catalogue') ? '#0c0a09' : '#f5f5f4',
-            background: safePathname.startsWith('/catalogue') ? '#f5f5f4' : 'transparent',
+            color: safePathname.startsWith('/catalogue') ? 'var(--color-bg)' : 'var(--color-text)',
+            background: safePathname.startsWith('/catalogue') ? 'var(--color-text)' : 'transparent',
             textDecoration: 'none',
             padding: '0 12px',
             fontSize: '12px',
@@ -49,8 +52,8 @@ export default function TopNav() {
             display: 'flex',
             alignItems: 'center',
             height: '100%',
-            color: safePathname.startsWith('/top-movers') ? '#0c0a09' : '#f5f5f4',
-            background: safePathname.startsWith('/top-movers') ? '#f5f5f4' : 'transparent',
+            color: safePathname.startsWith('/top-movers') ? 'var(--color-bg)' : 'var(--color-text)',
+            background: safePathname.startsWith('/top-movers') ? 'var(--color-text)' : 'transparent',
             textDecoration: 'none',
             padding: '0 12px',
             fontSize: '12px',
@@ -62,6 +65,25 @@ export default function TopNav() {
           [ TOP MOVERS ]
         </Link>
       </div>
+
+      <button
+        onClick={toggleTheme}
+        style={{
+          background: 'transparent',
+          border: '1px solid var(--color-border)',
+          color: 'var(--color-text)',
+          cursor: 'pointer',
+          padding: '4px 8px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.15s ease'
+        }}
+        className="osrs-btn"
+        aria-label="Toggle theme"
+      >
+        {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+      </button>
     </div>
   );
 }

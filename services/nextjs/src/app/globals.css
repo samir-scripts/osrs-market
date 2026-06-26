@@ -1,6 +1,25 @@
 /* OSRS Market Tracker - Design System */
 
 :root {
+  /* RPG Terminal Light Theme */
+  --color-bg: #f4f1e1;
+  --color-panel: #f4f1e1;
+  --color-panel-dark: #e8e3d2;
+  --color-border: #8b7355;
+  --color-border-light: #d1c7b7;
+  --color-text: #3e2723;
+  --color-text-muted: #8d6e63;
+  --color-text-dim: #bcaaa4;
+  --color-accent: #a0522d;
+  --color-positive: #2e8b57;
+  --color-negative: #d32f2f;
+  --color-neutral: #8b7355;
+  --color-link: #00897b;
+  --color-black: #3e2723;
+}
+
+[data-theme="dark"] {
+  /* Original Dark Theme */
   --color-bg: #0c0a09;
   --color-panel: #0c0a09;
   --color-panel-dark: #0c0a09;

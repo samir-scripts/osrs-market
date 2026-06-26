@@ -48,8 +48,8 @@ function TopMoversContent() {
   const { data, loading, error } = useQuery<any>(GET_TOP_MOVERS);
   const router = useRouter();
 
-  if (loading) return <div style={{ padding: '24px', color: '#f5f5f4' }}>[ LOADING TOP MOVERS ]</div>;
-  if (error) return <div style={{ padding: '24px', color: '#ff4444' }}>[ ERROR LOADING MOVERS ]</div>;
+  if (loading) return <div style={{ padding: '24px', color: 'var(--color-text)' }}>[ LOADING TOP MOVERS ]</div>;
+  if (error) return <div style={{ padding: '24px', color: 'var(--color-negative)' }}>[ ERROR LOADING MOVERS ]</div>;
 
   const topVolume = data?.top_volume || [];
   const topPrice = data?.top_price || [];
@@ -57,22 +57,22 @@ function TopMoversContent() {
   const thStyle = {
     padding: '12px 16px',
     textAlign: 'left' as const,
-    borderBottom: '1px solid #f5f5f4',
+    borderBottom: '1px solid var(--color-border)',
     whiteSpace: 'nowrap' as const,
   };
 
   const tdStyle = {
     padding: '12px 16px',
-    borderBottom: '1px solid #333',
+    borderBottom: '1px solid var(--color-border-light)',
   };
 
   const renderTable = (items: any[], title: string, isPriceTable: boolean) => (
-    <div style={{ border: '1px solid #f5f5f4', overflow: 'hidden' }}>
-      <div style={{ background: '#f5f5f4', color: '#0c0a09', padding: '12px 16px', fontWeight: 'bold' }}>
+    <div style={{ border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--color-text)', color: 'var(--color-bg)', padding: '12px 16px', fontWeight: 'bold' }}>
         [ {title} ]
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-        <thead style={{ background: '#1a1a1a', color: '#f5f5f4' }}>
+        <thead style={{ background: 'var(--color-panel-dark)', color: 'var(--color-text)' }}>
           <tr>
             <th style={thStyle}>Item</th>
             <th style={{...thStyle, textAlign: 'right'}}>Price</th>
@@ -89,13 +89,13 @@ function TopMoversContent() {
               <tr 
                 key={item.item_id}
                 onClick={() => router.push(`/item/${item.item_id}`)}
-                style={{ cursor: 'pointer', background: '#0c0a09' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#1a1a1a'}
-                onMouseLeave={(e) => e.currentTarget.style.background = '#0c0a09'}
+                style={{ cursor: 'pointer', background: 'var(--color-bg)' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-panel-dark)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'var(--color-bg)'}
               >
                 <td style={tdStyle}>
                   {item.name}
-                  <span style={{ color: '#aaa', marginLeft: '8px', fontSize: '12px' }}>
+                  <span style={{ color: 'var(--color-text-muted)', marginLeft: '8px', fontSize: '12px' }}>
                     {item.item_type?.type_name || ''}
                   </span>
                 </td>
@@ -103,7 +103,7 @@ function TopMoversContent() {
                   ...tdStyle, 
                   textAlign: 'right', 
                   fontFamily: 'monospace',
-                  color: isPriceTable ? '#44ff44' : 'inherit'
+                  color: isPriceTable ? 'var(--color-positive)' : 'inherit'
                 }}>
                   {priceRow.avg_high_price?.toLocaleString()} gp
                 </td>
@@ -111,7 +111,7 @@ function TopMoversContent() {
                   ...tdStyle, 
                   textAlign: 'right', 
                   fontFamily: 'monospace',
-                  color: !isPriceTable ? '#44ff44' : 'inherit'
+                  color: !isPriceTable ? 'var(--color-positive)' : 'inherit'
                 }}>
                   {vol.toLocaleString()}
                 </td>
