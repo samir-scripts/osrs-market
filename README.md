@@ -10,8 +10,9 @@
 <!-- Badges -->
 <p>
   <img src="https://img.shields.io/badge/Next.js-16-black?logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Rust-black?logo=rust" alt="Rust" />
   <img src="https://img.shields.io/badge/FastAPI-0.100+-009688?logo=fastapi" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/Apache_Spark-3.5-E25A1C?logo=apachespark" alt="Spark" />
+  <img src="https://img.shields.io/badge/Redis-7-DC382D?logo=redis" alt="Redis" />
   <img src="https://img.shields.io/badge/Apache_Airflow-2.9-017CEE?logo=apacheairflow" alt="Airflow" />
   <img src="https://img.shields.io/badge/MinIO-S3--Compatible-C72E49?logo=minio" alt="MinIO" />
   <img src="https://img.shields.io/badge/Redpanda-Kafka--Compatible-E64B28?logo=redpanda" alt="Redpanda" />
@@ -66,7 +67,7 @@
 
 OSRS Market Tracker is a full-stack, containerized data engineering portfolio project that tracks price movements across 4,500+ items in the Old School RuneScape Grand Exchange. It demonstrates a real-world streaming data pipeline — from ingestion and transformation to serving — using industry-standard tools.
 
-The platform ingests live price ticks via the [OSRS Prices API](https://prices.runescape.wiki/api/v1/osrs), produces them to a Redpanda (Kafka-compatible) topic, processes them with Apache Spark Structured Streaming, stores the results as Hive-partitioned Parquet files in MinIO (S3-compatible object storage), aggregates them with dbt-core and DuckDB, and surfaces everything through a live Next.js dashboard with GraphQL subscriptions.
+The platform ingests live price ticks via the [OSRS Prices API](https://prices.runescape.wiki/api/v1/osrs), produces them to a Redpanda (Kafka-compatible) topic, processes them with a high-performance Rust processor, stores the results as Hive-partitioned Parquet files in MinIO (S3-compatible object storage), caches live data in Redis, aggregates them with dbt-core and DuckDB, and surfaces everything through a live Next.js dashboard with GraphQL subscriptions.
 
 ### Screenshots
 
@@ -92,7 +93,8 @@ The platform ingests live price ticks via the [OSRS Prices API](https://prices.r
 <details>
   <summary><b>Backend / API</b></summary>
   <ul>
-    <li><a href="https://fastapi.tiangolo.com/">FastAPI</a> — Analytics REST API (Python)</li>
+    <li><a href="https://www.rust-lang.org/">Rust</a> — High-performance Analytics API & Stream Processor</li>
+    <li><a href="https://redis.io/">Redis</a> — In-memory caching for real-time data</li>
     <li><a href="https://hasura.io/">Hasura GraphQL Engine</a> — Real-time GraphQL over PostgreSQL</li>
     <li><a href="https://duckdb.org/">DuckDB</a> — In-process SQL analytics over Parquet/S3</li>
   </ul>
@@ -102,7 +104,7 @@ The platform ingests live price ticks via the [OSRS Prices API](https://prices.r
   <summary><b>Data Pipeline</b></summary>
   <ul>
     <li><a href="https://redpanda.com/">Redpanda</a> — Kafka-compatible event streaming broker</li>
-    <li><a href="https://spark.apache.org/">Apache Spark 3.5</a> — Structured Streaming from Kafka to Parquet</li>
+    <li><a href="https://www.rust-lang.org/">Rust</a> — Stream processing from Kafka to Parquet</li>
     <li><a href="https://www.getdbt.com/">dbt-core</a> — Daily Parquet mart transformations (dbt-duckdb)</li>
     <li><a href="https://airflow.apache.org/">Apache Airflow 2.9</a> — DAG orchestration (metadata sync, compaction, daily movers)</li>
   </ul>
@@ -136,14 +138,14 @@ The platform ingests live price ticks via the [OSRS Prices API](https://prices.r
 ### Features
 
 - **Live Price Ticks** — Polls the OSRS Prices API every 5 minutes and streams price events through Redpanda
-- **Spark Structured Streaming** — Consumes from Kafka and writes Hive-partitioned Parquet files to MinIO with automatic watchdog recovery
+- **Rust Processor** — High-performance Rust service that consumes from Kafka, processes ticks, and writes Hive-partitioned Parquet files to MinIO, while serving the Analytics API
 - **Historical Price Charts** — Interactive price & volume charts (24H, 7D, 30D) queried directly from Parquet via DuckDB
 - **Top 10 Daily Price Movers** — Pre-computed by a nightly Airflow DAG at midnight, served from a static Postgres table for instant load
 - **Price Alerts** — Set threshold-based alerts (>, <, >=, <=) on any item and receive in-app notifications when live prices cross them
 - **Full Item Catalogue** — Virtualized sidebar with 4,500+ OSRS items, icons loaded from the WeirdGloop sprite mirror
 - **dbt Daily Marts** — Nightly aggregation of raw 5-min ticks into a single daily Parquet mart for efficient historical queries
 - **Item Search** — Filter the sidebar by item name in real time
-- **Staging / Readiness** — Backend retry loop ensures the chart never flashes "no data" while Spark is still flushing a Parquet file to MinIO
+- **Staging / Readiness** — Backend retry loop ensures the chart never flashes "no data" while the Rust processor is flushing a Parquet file to MinIO
 - **Prometheus + Grafana** — API metrics exposed and visualized out of the box
 
 ---
@@ -176,7 +178,7 @@ OSRS Prices API
 FastAPI Producer  ──── Polls every 5 min ──►  Redpanda (Kafka Topic: osrs.prices)
                                                          │
                                                          ▼
-                                             Apache Spark Structured Streaming
+                                             Rust Processor (Analytics & Streaming) ◄── Redis (Cache)
                                                          │
                                              Writes Hive-partitioned Parquet
                                                          │
@@ -192,7 +194,7 @@ FastAPI Producer  ──── Polls every 5 min ──►  Redpanda (Kafka Topi
                                           └──────────────┘
                                                   │
                                                   ▼
-                                         FastAPI Analytics  ◄── PostgreSQL (item metadata,
+                                            Rust Analytics ◄── PostgreSQL (item metadata,
                                                   │              daily movers, alerts)
                                                   ▼
                                          Next.js + Hasura
@@ -209,13 +211,13 @@ FastAPI Producer  ──── Polls every 5 min ──►  Redpanda (Kafka Topi
 | --------------------- | ------------- | -------------------------------------- |
 | **Next.js**           | `3000`        | Frontend dashboard                     |
 | **FastAPI Producer**  | `8000`        | Price ingestion & producer             |
-| **FastAPI Analytics** | `8001`        | Historical price & top-movers REST API |
+| **Rust Processor**    | `8001`        | Stream processing & Analytics API      |
 | **Hasura**            | `8082`        | GraphQL Engine                         |
 | **Redpanda**          | `9092`        | Kafka-compatible broker                |
 | **Redpanda Console**  | `8080`        | Redpanda web UI                        |
 | **MinIO**             | `9000 / 9001` | Object storage & console               |
 | **Airflow Webserver** | `8085`        | DAG management UI                      |
-| **Spark**             | `8888`        | Spark master web UI                    |
+| **Redis**             | `6379`        | In-memory cache                        |
 | **PostgreSQL**        | `5432`        | Relational database                    |
 | **Prometheus**        | `9090`        | Metrics scraping                       |
 | **Grafana**           | `3001`        | Observability dashboards               |
@@ -323,12 +325,11 @@ osrs-market/
     │   ├── main.py
     │   └── Dockerfile
     │
-    ├── analytics/              # FastAPI analytics API (DuckDB + PostgreSQL)
-    │   ├── main.py
+    ├── rust-processor/         # Rust stream processing & Analytics API
+    │   ├── src/
+    │   │   └── main.rs
+    │   ├── Cargo.toml
     │   └── Dockerfile
-    │
-    ├── spark/                  # Spark Structured Streaming job
-    │   └── streaming_job.py
     │
     ├── dbt/                    # dbt-core transformation project (dbt-duckdb)
     │   ├── models/
