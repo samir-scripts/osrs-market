@@ -40621,3 +40621,452 @@ drop table if exists `default`.`gold_osrs_prices__dbt_backup`
 [0m20:36:05.383818 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff88049df0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff8738e930>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff8738e8d0>]}
 [0m20:36:05.383989 [debug] [MainThread]: Flushing usage events
 [0m20:36:05.578845 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m20:40:02.907518 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff7a5e6630>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff7b3bd580>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff7edb2330>]}
+
+
+============================== 20:40:02.915505 | 6489856d-1fad-434b-b6ff-9c23604c4a60 ==============================
+[0m20:40:02.915505 [info ] [MainThread]: Running with dbt=1.11.11
+[0m20:40:02.915940 [debug] [MainThread]: running dbt with arguments {'target_path': 'None', 'fail_fast': 'False', 'version_check': 'True', 'empty': 'False', 'static_parser': 'True', 'warn_error': 'None', 'invocation_command': 'dbt run --profiles-dir .', 'printer_width': '80', 'no_print': 'None', 'debug': 'False', 'indirect_selection': 'eager', 'partial_parse': 'True', 'log_cache_events': 'False', 'log_path': '/opt/airflow/dbt/logs', 'log_format': 'default', 'send_anonymous_usage_stats': 'True', 'introspect': 'True', 'use_experimental_parser': 'False', 'use_colors': 'True', 'cache_selected_only': 'False', 'profiles_dir': '.', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'quiet': 'False', 'write_json': 'True'}
+[0m20:40:02.991175 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '6489856d-1fad-434b-b6ff-9c23604c4a60', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff7a2ad0d0>]}
+[0m20:40:03.017695 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '6489856d-1fad-434b-b6ff-9c23604c4a60', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff7b0e9df0>]}
+[0m20:40:03.018251 [info ] [MainThread]: Registered adapter: clickhouse=1.10.1
+[0m20:40:03.048889 [debug] [MainThread]: checksum: 30a8cc8fdcbf66701b0944d4ccce3fa46dd04b61e5df68b9f16d57b2e0e3f0be, vars: {}, profile: , target: , version: 1.11.11
+[0m20:40:03.084151 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m20:40:03.084431 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m20:40:03.084619 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m20:40:03.094853 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '6489856d-1fad-434b-b6ff-9c23604c4a60', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff7a0b6540>]}
+[0m20:40:03.126537 [debug] [MainThread]: Wrote artifact WritableManifest to /opt/airflow/dbt/target/manifest.json
+[0m20:40:03.128032 [debug] [MainThread]: Wrote artifact SemanticManifest to /opt/airflow/dbt/target/semantic_manifest.json
+[0m20:40:03.136614 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '6489856d-1fad-434b-b6ff-9c23604c4a60', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff79eae930>]}
+[0m20:40:03.136949 [info ] [MainThread]: Found 3 models, 530 macros
+[0m20:40:03.137214 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '6489856d-1fad-434b-b6ff-9c23604c4a60', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff79ea23c0>]}
+[0m20:40:03.138439 [info ] [MainThread]: 
+[0m20:40:03.138907 [info ] [MainThread]: Concurrency: 1 threads (target='dev')
+[0m20:40:03.139245 [info ] [MainThread]: 
+[0m20:40:03.139613 [debug] [MainThread]: Acquiring new clickhouse connection 'master'
+[0m20:40:03.142613 [debug] [ThreadPool]: Acquiring new clickhouse connection 'list_'
+[0m20:40:03.147987 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m20:40:03.207229 [debug] [ThreadPool]: dbt_clickhouse adapter: On list_: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "connection_name": "list_"} */
+
+    select name from system.databases
+  ...
+[0m20:40:03.210406 [debug] [ThreadPool]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.246399 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_, now list__default)
+[0m20:40:03.254115 [debug] [ThreadPool]: dbt_clickhouse adapter: On list__default: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "connection_name": "list__default"} */
+with mv_sources as (
+      -- Find all MVs and their target tables (database and name of the MV, plus the SELECT SQL)
+      select
+        name as mv_name,
+        database as mv_database,
+        any(as_select) as mv_sql,
+        any(replaceRegexpOne(create_table_query, '.*TO\\s+`?([^`\\s(]+)`?\\.`?([^`\\s(]+)`?.*', '\\1.\\2')) as target_fqn
+      
+      from system.tables
+      
+      where engine = 'MaterializedView'
+        and create_table_query like '%TO %'
+      group by mv_name, mv_database
+    )
+    select
+      t.name as name,
+      t.database as schema,
+      multiIf(
+        t.engine = 'MaterializedView', 'materialized_view',
+        t.engine = 'View', 'view',
+        t.engine = 'Dictionary', 'dictionary',
+        'table'
+      ) as type,
+      db.engine as db_engine,
+      groupArrayIf(
+        map('schema', mv_sources.mv_database, 'name', mv_sources.mv_name, 'sql', mv_sources.mv_sql),
+        mv_sources.mv_name != ''
+      ) as mvs_pointing_to_it,0 as is_on_cluster
+        from system.tables as t
+      
+        join system.databases as db on t.database = db.name
+        left join mv_sources on mv_sources.target_fqn = concat(t.database, '.', t.name)
+      where schema = 'default'
+      group by name, schema, type, db_engine
+
+  ...
+[0m20:40:03.283988 [debug] [ThreadPool]: dbt_clickhouse adapter: SQL status: OK in 0.03 seconds
+[0m20:40:03.287245 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '6489856d-1fad-434b-b6ff-9c23604c4a60', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff7b79b200>]}
+[0m20:40:03.292535 [debug] [Thread-1 (]: Began running node model.osrs_dbt.clean_osrs_prices
+[0m20:40:03.293650 [info ] [Thread-1 (]: 1 of 3 START sql incremental model `default`.`clean_osrs_prices` ............... [RUN]
+[0m20:40:03.294157 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly list__default, now model.osrs_dbt.clean_osrs_prices)
+[0m20:40:03.294462 [debug] [Thread-1 (]: Began compiling node model.osrs_dbt.clean_osrs_prices
+[0m20:40:03.301928 [debug] [Thread-1 (]: Writing injected SQL for node "model.osrs_dbt.clean_osrs_prices"
+[0m20:40:03.303114 [debug] [Thread-1 (]: Began executing node model.osrs_dbt.clean_osrs_prices
+[0m20:40:03.340049 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.clean_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.clean_osrs_prices"} */
+drop table if exists `default`.`clean_osrs_prices__dbt_new_data` 
+  ...
+[0m20:40:03.341859 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.352716 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.clean_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.clean_osrs_prices"} */
+
+            
+
+    
+        create table `default`.`clean_osrs_prices__dbt_new_data`
+        
+  
+        
+  engine = MergeTree()
+        
+      order by (tuple())
+        
+        
+        
+        
+                    -- end_of_sql
+                    SETTINGS replicated_deduplication_window='0'
+
+                    
+            empty
+          as (
+            
+
+WITH extracted AS (
+    SELECT
+        toDateTime(toUInt32(JSONExtractString(raw_data, 'timestamp'))) as timestamp,
+        JSONExtractKeysAndValuesRaw(raw_data, 'data') as items
+    FROM default.raw_osrs_prices
+    
+    WHERE ingested_at > (SELECT max(ingested_at) FROM `default`.`clean_osrs_prices`)
+    
+),
+flattened AS (
+    SELECT
+        timestamp,
+        tupleElement(item, 1) as item_id_str,
+        tupleElement(item, 2) as item_data_raw
+    FROM extracted
+    ARRAY JOIN items AS item
+)
+SELECT
+    toUInt32(item_id_str) as item_id,
+    timestamp,
+    toUInt32OrNull(JSONExtractString(item_data_raw, 'avgHighPrice')) as avg_high_price,
+    toUInt32OrNull(JSONExtractString(item_data_raw, 'avgLowPrice')) as avg_low_price,
+    toUInt32OrNull(JSONExtractString(item_data_raw, 'highPriceVolume')) as high_price_volume,
+    toUInt32OrNull(JSONExtractString(item_data_raw, 'lowPriceVolume')) as low_price_volume,
+    now() as ingested_at
+FROM flattened
+          )
+        
+        ...
+[0m20:40:03.359838 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.01 seconds
+[0m20:40:03.373808 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.clean_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.clean_osrs_prices"} */
+
+    select name, type from system.columns where table = 'clean_osrs_prices__dbt_new_data'
+    
+      
+        and database = 'default'
+      
+    
+    order by position
+  ...
+[0m20:40:03.376435 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.378112 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.clean_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.clean_osrs_prices"} */
+
+        
+  
+    
+    
+    
+        
+         
+
+
+        
+  
+
+  insert into `default`.`clean_osrs_prices__dbt_new_data`
+        ("item_id", "timestamp", "avg_high_price", "avg_low_price", "high_price_volume", "low_price_volume", "ingested_at")
+
+WITH extracted AS (
+    SELECT
+        toDateTime(toUInt32(JSONExtractString(raw_data, 'timestamp'))) as timestamp,
+        JSONExtractKeysAndValuesRaw(raw_data, 'data') as items
+    FROM default.raw_osrs_prices
+    
+    WHERE ingested_at > (SELECT max(ingested_at) FROM `default`.`clean_osrs_prices`)
+    
+),
+flattened AS (
+    SELECT
+        timestamp,
+        tupleElement(item, 1) as item_id_str,
+        tupleElement(item, 2) as item_data_raw
+    FROM extracted
+    ARRAY JOIN items AS item
+)
+SELECT
+    toUInt32(item_id_str) as item_id,
+    timestamp,
+    toUInt32OrNull(JSONExtractString(item_data_raw, 'avgHighPrice')) as avg_high_price,
+    toUInt32OrNull(JSONExtractString(item_data_raw, 'avgLowPrice')) as avg_low_price,
+    toUInt32OrNull(JSONExtractString(item_data_raw, 'highPriceVolume')) as high_price_volume,
+    toUInt32OrNull(JSONExtractString(item_data_raw, 'lowPriceVolume')) as low_price_volume,
+    now() as ingested_at
+FROM flattened
+  
+      ...
+[0m20:40:03.395811 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.02 seconds
+[0m20:40:03.396558 [debug] [Thread-1 (]: Writing runtime sql for node "model.osrs_dbt.clean_osrs_prices"
+[0m20:40:03.397320 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.clean_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.clean_osrs_prices"} */
+
+          create table `default`.`clean_osrs_prices__dbt_tmp` 
+   as `default`.`clean_osrs_prices__dbt_new_data`
+      ...
+[0m20:40:03.401167 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.402369 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.clean_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.clean_osrs_prices"} */
+
+    select name, type from system.columns where table = 'clean_osrs_prices'
+    
+      
+        and database = 'default'
+      
+    
+    order by position
+  ...
+[0m20:40:03.403787 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.404488 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.clean_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.clean_osrs_prices"} */
+
+        insert into `default`.`clean_osrs_prices__dbt_tmp` ("item_id", "timestamp", "avg_high_price", "avg_low_price", "high_price_volume", "low_price_volume", "ingested_at")
+        select "item_id", "timestamp", "avg_high_price", "avg_low_price", "high_price_volume", "low_price_volume", "ingested_at"
+        from `default`.`clean_osrs_prices`
+          where (item_id, timestamp) not in (
+            select item_id, timestamp
+            from `default`.`clean_osrs_prices__dbt_new_data`
+          )
+       
+    ...
+[0m20:40:03.413134 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.01 seconds
+[0m20:40:03.414210 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.clean_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.clean_osrs_prices"} */
+
+     insert into `default`.`clean_osrs_prices__dbt_tmp` ("item_id", "timestamp", "avg_high_price", "avg_low_price", "high_price_volume", "low_price_volume", "ingested_at")
+        select "item_id", "timestamp", "avg_high_price", "avg_low_price", "high_price_volume", "low_price_volume", "ingested_at"
+        from `default`.`clean_osrs_prices__dbt_new_data`
+      
+    ...
+[0m20:40:03.415490 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.416858 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.clean_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.clean_osrs_prices"} */
+drop table if exists `default`.`clean_osrs_prices__dbt_new_data` 
+  ...
+[0m20:40:03.417781 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.420531 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.clean_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.clean_osrs_prices"} */
+
+    drop table if exists `default`.`clean_osrs_prices__dbt_backup` 
+  
+  ...
+[0m20:40:03.421222 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.421701 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.clean_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.clean_osrs_prices"} */
+
+    rename table `default`.`clean_osrs_prices__dbt_tmp` to `default`.`clean_osrs_prices__dbt_backup` 
+  
+  ...
+[0m20:40:03.422463 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.424277 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.clean_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.clean_osrs_prices"} */
+EXCHANGE TABLES `default`.`clean_osrs_prices__dbt_backup` AND `default`.`clean_osrs_prices` 
+  
+  ...
+[0m20:40:03.425535 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.433107 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.clean_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.clean_osrs_prices"} */
+drop table if exists `default`.`clean_osrs_prices__dbt_backup` 
+  ...
+[0m20:40:03.434164 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.435814 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '6489856d-1fad-434b-b6ff-9c23604c4a60', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff79c74710>]}
+[0m20:40:03.436172 [info ] [Thread-1 (]: 1 of 3 OK created sql incremental model `default`.`clean_osrs_prices` .......... [[32mOK[0m in 0.14s]
+[0m20:40:03.436514 [debug] [Thread-1 (]: Finished running node model.osrs_dbt.clean_osrs_prices
+[0m20:40:03.436753 [debug] [Thread-1 (]: Began running node model.osrs_dbt.daily_item_history
+[0m20:40:03.437169 [info ] [Thread-1 (]: 2 of 3 START sql external model `default`.`daily_item_history` ................. [RUN]
+[0m20:40:03.437411 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.osrs_dbt.clean_osrs_prices, now model.osrs_dbt.daily_item_history)
+[0m20:40:03.437595 [debug] [Thread-1 (]: Began compiling node model.osrs_dbt.daily_item_history
+[0m20:40:03.438678 [debug] [Thread-1 (]: Writing injected SQL for node "model.osrs_dbt.daily_item_history"
+[0m20:40:03.439192 [debug] [Thread-1 (]: Began executing node model.osrs_dbt.daily_item_history
+[0m20:40:03.441375 [debug] [Thread-1 (]: Compilation Error in model daily_item_history (models/marts/daily_item_history.sql)
+  No materialization 'external' was found for adapter clickhouse! (searched types 'default' and 'clickhouse')
+[0m20:40:03.441630 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '6489856d-1fad-434b-b6ff-9c23604c4a60', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff78642180>]}
+[0m20:40:03.441918 [error] [Thread-1 (]: 2 of 3 ERROR creating sql external model `default`.`daily_item_history` ........ [[31mERROR[0m in 0.00s]
+[0m20:40:03.442188 [debug] [Thread-1 (]: Finished running node model.osrs_dbt.daily_item_history
+[0m20:40:03.442386 [debug] [Thread-1 (]: Began running node model.osrs_dbt.gold_osrs_prices
+[0m20:40:03.442604 [debug] [Thread-4 (]: Marking all children of 'model.osrs_dbt.daily_item_history' to be skipped because of status 'error'.  Reason: Compilation Error in model daily_item_history (models/marts/daily_item_history.sql)
+  No materialization 'external' was found for adapter clickhouse! (searched types 'default' and 'clickhouse').
+[0m20:40:03.442840 [info ] [Thread-1 (]: 3 of 3 START sql incremental model `default`.`gold_osrs_prices` ................ [RUN]
+[0m20:40:03.443550 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.osrs_dbt.daily_item_history, now model.osrs_dbt.gold_osrs_prices)
+[0m20:40:03.443735 [debug] [Thread-1 (]: Began compiling node model.osrs_dbt.gold_osrs_prices
+[0m20:40:03.445361 [debug] [Thread-1 (]: Writing injected SQL for node "model.osrs_dbt.gold_osrs_prices"
+[0m20:40:03.445868 [debug] [Thread-1 (]: Began executing node model.osrs_dbt.gold_osrs_prices
+[0m20:40:03.448563 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.gold_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.gold_osrs_prices"} */
+drop table if exists `default`.`gold_osrs_prices__dbt_new_data` 
+  ...
+[0m20:40:03.449613 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.450600 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.gold_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.gold_osrs_prices"} */
+
+            
+
+    
+        create table `default`.`gold_osrs_prices__dbt_new_data`
+        
+  
+        
+  engine = MergeTree()
+        
+      order by (tuple())
+        
+        
+        
+        
+                    -- end_of_sql
+                    SETTINGS replicated_deduplication_window='0'
+
+                    
+            empty
+          as (
+            
+
+SELECT
+    item_id,
+    timestamp,
+    avg_high_price,
+    avg_low_price,
+    ifNull(high_price_volume, 0) + ifNull(low_price_volume, 0) as total_volume
+FROM `default`.`clean_osrs_prices`
+
+WHERE timestamp >= (SELECT max(timestamp) FROM `default`.`gold_osrs_prices`)
+
+          )
+        
+        ...
+[0m20:40:03.454612 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.456459 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.gold_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.gold_osrs_prices"} */
+
+    select name, type from system.columns where table = 'gold_osrs_prices__dbt_new_data'
+    
+      
+        and database = 'default'
+      
+    
+    order by position
+  ...
+[0m20:40:03.458172 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.459663 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.gold_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.gold_osrs_prices"} */
+
+        
+  
+    
+    
+    
+        
+         
+
+
+        
+  
+
+  insert into `default`.`gold_osrs_prices__dbt_new_data`
+        ("item_id", "timestamp", "avg_high_price", "avg_low_price", "total_volume")
+
+SELECT
+    item_id,
+    timestamp,
+    avg_high_price,
+    avg_low_price,
+    ifNull(high_price_volume, 0) + ifNull(low_price_volume, 0) as total_volume
+FROM `default`.`clean_osrs_prices`
+
+WHERE timestamp >= (SELECT max(timestamp) FROM `default`.`gold_osrs_prices`)
+
+  
+      ...
+[0m20:40:03.467969 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.01 seconds
+[0m20:40:03.468668 [debug] [Thread-1 (]: Writing runtime sql for node "model.osrs_dbt.gold_osrs_prices"
+[0m20:40:03.469634 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.gold_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.gold_osrs_prices"} */
+
+          create table `default`.`gold_osrs_prices__dbt_tmp` 
+   as `default`.`gold_osrs_prices__dbt_new_data`
+      ...
+[0m20:40:03.472948 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.475474 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.gold_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.gold_osrs_prices"} */
+
+    select name, type from system.columns where table = 'gold_osrs_prices'
+    
+      
+        and database = 'default'
+      
+    
+    order by position
+  ...
+[0m20:40:03.477924 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.478724 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.gold_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.gold_osrs_prices"} */
+
+        insert into `default`.`gold_osrs_prices__dbt_tmp` ("item_id", "timestamp", "avg_high_price", "avg_low_price", "total_volume")
+        select "item_id", "timestamp", "avg_high_price", "avg_low_price", "total_volume"
+        from `default`.`gold_osrs_prices`
+          where (item_id, timestamp) not in (
+            select item_id, timestamp
+            from `default`.`gold_osrs_prices__dbt_new_data`
+          )
+       
+    ...
+[0m20:40:03.486595 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.01 seconds
+[0m20:40:03.487236 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.gold_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.gold_osrs_prices"} */
+
+     insert into `default`.`gold_osrs_prices__dbt_tmp` ("item_id", "timestamp", "avg_high_price", "avg_low_price", "total_volume")
+        select "item_id", "timestamp", "avg_high_price", "avg_low_price", "total_volume"
+        from `default`.`gold_osrs_prices__dbt_new_data`
+      
+    ...
+[0m20:40:03.489253 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.490513 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.gold_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.gold_osrs_prices"} */
+drop table if exists `default`.`gold_osrs_prices__dbt_new_data` 
+  ...
+[0m20:40:03.491355 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.492548 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.gold_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.gold_osrs_prices"} */
+
+    drop table if exists `default`.`gold_osrs_prices__dbt_backup` 
+  
+  ...
+[0m20:40:03.493128 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.493700 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.gold_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.gold_osrs_prices"} */
+
+    rename table `default`.`gold_osrs_prices__dbt_tmp` to `default`.`gold_osrs_prices__dbt_backup` 
+  
+  ...
+[0m20:40:03.494412 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.494825 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.gold_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.gold_osrs_prices"} */
+EXCHANGE TABLES `default`.`gold_osrs_prices__dbt_backup` AND `default`.`gold_osrs_prices` 
+  
+  ...
+[0m20:40:03.495523 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.496904 [debug] [Thread-1 (]: dbt_clickhouse adapter: On model.osrs_dbt.gold_osrs_prices: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.gold_osrs_prices"} */
+drop table if exists `default`.`gold_osrs_prices__dbt_backup` 
+  ...
+[0m20:40:03.497599 [debug] [Thread-1 (]: dbt_clickhouse adapter: SQL status: OK in 0.00 seconds
+[0m20:40:03.498223 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '6489856d-1fad-434b-b6ff-9c23604c4a60', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff78641dc0>]}
+[0m20:40:03.498573 [info ] [Thread-1 (]: 3 of 3 OK created sql incremental model `default`.`gold_osrs_prices` ........... [[32mOK[0m in 0.05s]
+[0m20:40:03.498904 [debug] [Thread-1 (]: Finished running node model.osrs_dbt.gold_osrs_prices
+[0m20:40:03.499720 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m20:40:03.499935 [debug] [MainThread]: Connection 'model.osrs_dbt.gold_osrs_prices' was left open.
+[0m20:40:03.500106 [debug] [MainThread]: On model.osrs_dbt.gold_osrs_prices: Close
+[0m20:40:03.500343 [info ] [MainThread]: 
+[0m20:40:03.500559 [info ] [MainThread]: Finished running 1 external model, 2 incremental models in 0 hours 0 minutes and 0.36 seconds (0.36s).
+[0m20:40:03.501001 [debug] [MainThread]: Command end result
+[0m20:40:03.545469 [debug] [MainThread]: Wrote artifact WritableManifest to /opt/airflow/dbt/target/manifest.json
+[0m20:40:03.546607 [debug] [MainThread]: Wrote artifact SemanticManifest to /opt/airflow/dbt/target/semantic_manifest.json
+[0m20:40:03.549228 [debug] [MainThread]: Wrote artifact RunExecutionResult to /opt/airflow/dbt/target/run_results.json
+[0m20:40:03.549453 [info ] [MainThread]: 
+[0m20:40:03.549686 [info ] [MainThread]: [31mCompleted with 1 error, 0 partial successes, and 0 warnings:[0m
+[0m20:40:03.549886 [info ] [MainThread]: 
+[0m20:40:03.550107 [error] [MainThread]: [31mFailure in model daily_item_history (models/marts/daily_item_history.sql)[0m
+[0m20:40:03.550328 [error] [MainThread]:   Compilation Error in model daily_item_history (models/marts/daily_item_history.sql)
+  No materialization 'external' was found for adapter clickhouse! (searched types 'default' and 'clickhouse')
+[0m20:40:03.550499 [info ] [MainThread]: 
+[0m20:40:03.550687 [info ] [MainThread]:   compiled code at target/compiled/osrs_dbt/models/marts/daily_item_history.sql
+[0m20:40:03.550866 [info ] [MainThread]: 
+[0m20:40:03.551053 [info ] [MainThread]: Done. PASS=2 WARN=0 ERROR=1 SKIP=0 NO-OP=0 TOTAL=3
+[0m20:40:03.551688 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": false, "command_wall_clock_time": 0.6697217, "process_in_blocks": "0", "process_kernel_time": 0.226509, "process_mem_max_rss": "124096", "process_out_blocks": "2512", "process_user_time": 1.275125}
+[0m20:40:03.551936 [debug] [MainThread]: Command `dbt run` failed at 20:40:03.551898 after 0.67 seconds
+[0m20:40:03.552149 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff7a69fc80>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff7af62600>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0xffff7c0ff1a0>]}
+[0m20:40:03.552356 [debug] [MainThread]: Flushing usage events
+[0m20:40:03.734037 [debug] [MainThread]: An error was encountered while trying to flush usage events
