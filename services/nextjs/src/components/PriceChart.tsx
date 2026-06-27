@@ -66,6 +66,7 @@ export default function PriceChart() {
   const itemId = useStore((state) => state.selectedItemId);
   const itemName = useStore((state) => state.selectedItemName);
   const refreshKey = useStore((state) => state.refreshKey);
+  const incrementRefreshKey = useStore((state) => state.incrementRefreshKey);
 
   const [data, setData] = useState<PriceTick[]>([]);
   const [loading, setLoading] = useState(false);
@@ -95,7 +96,10 @@ export default function PriceChart() {
         setLoading(true);
         setData([]); // Clear old data if changing items to avoid showing wrong chart
       }
-      const res = await fetch(`/api/analytics/history/${itemId}?days=30`, { signal });
+      const res = await fetch(`/api/analytics/history/${itemId}?days=30&t=${Date.now()}`, { 
+        signal,
+        cache: 'no-store'
+      });
       if (!res.ok) throw new Error('Failed to fetch price history');
       const json = await res.json();
       if (!signal.aborted) {
@@ -208,11 +212,57 @@ export default function PriceChart() {
       }
       style={{ flex: 1, minHeight: '350px' }}
     >
-      {loading && <div style={{ padding: '24px', color: 'var(--color-text-muted)' }}>LOADING HISTORICAL DATA...</div>}
-      {error && <div style={{ padding: '24px', color: 'var(--color-negative)' }}>{error}</div>}
+      {loading && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px', gap: '16px' }}>
+          <div style={{ fontSize: '12px', letterSpacing: '0.1em', color: 'var(--color-text-muted)', fontFamily: 'var(--font-jetbrains-mono)' }}>
+            [ LOADING HISTORICAL DATA ]
+          </div>
+          <div style={{ width: '200px', height: '2px', background: 'var(--color-border)', overflow: 'hidden', position: 'relative' }}>
+            <div style={{ 
+              width: '40%', 
+              height: '100%', 
+              background: 'var(--color-accent)', 
+              position: 'absolute',
+              animation: 'chartLoadingBar 1.5s infinite ease-in-out' 
+            }} />
+          </div>
+          <style>{`
+            @keyframes chartLoadingBar {
+              0% { left: -40%; }
+              100% { left: 100%; }
+            }
+          `}</style>
+        </div>
+      )}
+      {error && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px', gap: '12px', padding: '24px', textAlign: 'center' }}>
+          <div style={{ color: 'var(--color-negative)', fontFamily: 'var(--font-jetbrains-mono)', fontSize: '13px' }}>
+            [ FETCH ERROR: {error.toUpperCase()} ]
+          </div>
+          <button 
+            onClick={incrementRefreshKey}
+            className="osrs-btn"
+            style={{ padding: '6px 16px', fontSize: '12px', cursor: 'pointer' }}
+          >
+            RETRY
+          </button>
+        </div>
+      )}
       {!loading && !error && filteredData.length === 0 && (
-        <div style={{ padding: '24px', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-          NO HISTORICAL DATA FOR THIS ITEM IN CLICKHOUSE YET
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px', gap: '16px', padding: '24px', textAlign: 'center' }}>
+          <div style={{ color: 'var(--color-negative)', fontFamily: 'var(--font-jetbrains-mono)', fontSize: '13px', letterSpacing: '0.05em' }}>
+            NO HISTORICAL DATA FOR THIS ITEM IN CLICKHOUSE YET
+          </div>
+          <div style={{ color: 'var(--color-text-muted)', fontSize: '11px', maxWidth: '400px', lineHeight: '1.5' }}>
+            The ingestion pipeline may still be fetching recent OSRS price points. Try changing the timeframe selector to 30D, or click refresh to try again.
+          </div>
+          <button 
+            onClick={incrementRefreshKey}
+            className="osrs-btn"
+            style={{ padding: '6px 16px', fontSize: '12px', cursor: 'pointer' }}
+          >
+            RETRY INGESTION FETCH
+          </button>
         </div>
       )}
       {!loading && !error && filteredData.length > 0 && (

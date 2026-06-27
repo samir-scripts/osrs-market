@@ -40,7 +40,7 @@ def fetch_item_metadata():
         
     try:
         logger.info("Fetching item metadata mapping from OSRS Wiki API...")
-        headers = {"User-Agent": "OSRS Market Tracker - @DevelopmentSandbox"}
+        headers = {"User-Agent": "osrs-market-tracker - dev@example.com - @DevelopmentSandbox"}
         res = requests.get("https://prices.runescape.wiki/api/v1/osrs/mapping", headers=headers, timeout=10)
         res.raise_for_status()
         mapping = res.json()
@@ -73,7 +73,11 @@ def get_clickhouse_client():
     )
 
 # 5 minute cache (300 seconds)
-cache = TTLCache(maxsize=1000, ttl=300)
+cache_top_movers = TTLCache(maxsize=100, ttl=300)
+cache_catalogue = TTLCache(maxsize=1000, ttl=300)
+cache_top_stats = TTLCache(maxsize=100, ttl=300)
+cache_latest = TTLCache(maxsize=1000, ttl=300)
+cache_historical = TTLCache(maxsize=1000, ttl=300)
 
 @app.on_event("startup")
 def startup_event():
@@ -108,13 +112,28 @@ def check_readiness():
         logger.error(f"Readiness check failed: {e}")
         return {"ready": False, "error": str(e)}
 
+@app.get("/schedule")
+def get_schedule():
+    import math
+    import time
+    now = time.time()
+    current_interval_start = math.floor(now / 300) * 300
+    next_update = current_interval_start + 300
+    
+    return {
+        "last_fetched_at": current_interval_start,
+        "next_update_at": next_update,
+        "poll_interval_sec": 300,
+        "connection_status": "online"
+    }
+
 @app.get("/api/items")
 def get_items():
     metadata = fetch_item_metadata()
     return list(metadata.values())
 
 @app.get("/api/analytics/top-movers")
-@cached(cache)
+@cached(cache_top_movers)
 def get_top_movers():
     client = get_clickhouse_client()
     # Clickhouse query to get start and end price in last 24h
@@ -162,7 +181,7 @@ def get_top_movers():
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/catalogue")
-@cached(cache)
+@cached(cache_catalogue)
 def get_catalogue():
     client = get_clickhouse_client()
     query = """
@@ -228,7 +247,7 @@ def get_catalogue():
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/analytics/top-stats")
-@cached(cache)
+@cached(cache_top_stats)
 def get_top_stats():
     client = get_clickhouse_client()
     
@@ -290,7 +309,7 @@ def get_top_stats():
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/prices/latest/{item_id}")
-@cached(cache)
+@cached(cache_latest)
 def get_latest_price(item_id: int):
     client = get_clickhouse_client()
     query = f"""
@@ -334,7 +353,7 @@ def get_latest_price(item_id: int):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/prices/historical/{item_id}")
-@cached(cache)
+@cached(cache_historical)
 def get_historical_prices(item_id: int):
     client = get_clickhouse_client()
     query = f"""
@@ -351,6 +370,21 @@ def get_historical_prices(item_id: int):
     try:
         result = client.query(query)
         rows = result.result_rows
+        
+        if not rows:
+            logger.info(f"No historical data for item {item_id} in gold layer, falling back to silver layer")
+            silver_query = f"""
+                SELECT 
+                    toUnixTimestamp(timestamp) as ts,
+                    avg_high_price,
+                    avg_low_price,
+                    ifNull(high_price_volume, 0) + ifNull(low_price_volume, 0) as total_volume
+                FROM default.clean_osrs_prices
+                WHERE item_id = {item_id}
+                ORDER BY ts ASC
+            """
+            result = client.query(silver_query)
+            rows = result.result_rows
         
         timestamps = []
         avg_high_prices = []

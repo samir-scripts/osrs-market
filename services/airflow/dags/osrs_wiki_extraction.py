@@ -61,7 +61,7 @@ with DAG(
 
     dbt_run_task = BashOperator(
         task_id='run_dbt_models',
-        bash_command='cd /opt/airflow/dbt && dbt run --profiles-dir .',
+        bash_command='cd /opt/airflow/dbt && dbt run --profiles-dir . --select silver gold',
     )
     
     extract_load_task >> dbt_run_task

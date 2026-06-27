@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ item_id: string }> }
@@ -11,7 +13,10 @@ export async function GET(
     const days = searchParams.get('days') || '7';
     
     const backendUrl = process.env.BACKEND_URL || 'http://fastapi-backend:8000';
-    const res = await fetch(`${backendUrl}/api/prices/historical/${item_id}`);
+    const res = await fetch(`${backendUrl}/api/prices/historical/${item_id}`, {
+      cache: 'no-store',
+      next: { revalidate: 0 }
+    });
     
     if (!res.ok) {
       return NextResponse.json({ timestamps: [], avg_high_prices: [], avg_low_prices: [], total_volumes: [] });

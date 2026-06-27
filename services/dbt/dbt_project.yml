@@ -17,5 +17,4 @@ clean-targets:
 
 models:
   osrs_dbt:
-    marts:
-      materialized: view
+
