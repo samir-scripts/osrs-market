@@ -1,1 +1,1 @@
-{"_invocation_id": "dc45db5c-28a8-4d61-a769-b3d978035eb7", "linked": {"0": {"name": "model.osrs_dbt.daily_item_history", "type": "model"}}}
+{"_invocation_id": "4de95c78-c318-48e5-b6c4-6449598c139e", "linked": {"0": {"name": "model.osrs_dbt.clean_osrs_prices", "type": "model", "succ": [2]}, "1": {"name": "model.osrs_dbt.daily_item_history", "type": "model"}, "2": {"name": "model.osrs_dbt.gold_osrs_prices", "type": "model"}}}

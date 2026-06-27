@@ -2,30 +2,10 @@ osrs_dbt:
   target: dev
   outputs:
     dev:
-      type: duckdb
-      path: dev.duckdb
-      extensions:
-        - httpfs
-        - parquet
-      secrets:
-        - type: s3
-          key_id: minioadmin
-          secret: minioadmin_secure_pass
-          region: us-east-1
-          endpoint: localhost:9000
-          use_ssl: false
-          url_style: path
-    prod:
-      type: duckdb
-      path: prod.duckdb
-      extensions:
-        - httpfs
-        - parquet
-      secrets:
-        - type: s3
-          key_id: minioadmin
-          secret: minioadmin_secure_pass
-          region: us-east-1
-          endpoint: minio:9000
-          use_ssl: false
-          url_style: path
+      type: clickhouse
+      schema: default
+      host: clickhouse
+      port: 8123
+      user: default
+      password: password
+      secure: False

@@ -1,74 +1,63 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@apollo/client/react';
-import { gql } from '@apollo/client';
-import { client } from '../lib/apollo-client';
 import { LoadingScreen } from './LoadingScreen';
 
-const CHECK_READINESS = gql`
-  query CheckReadiness {
-    items_metadata_aggregate {
-      aggregate {
-        count
-      }
-    }
-    latest_item_prices_aggregate {
-      aggregate {
-        count
-      }
-    }
-  }
-`;
-
-const GET_ITEMS = gql`
-  query GetItems {
-    items_metadata(order_by: { name: asc }) {
-      item_id
-      name
-      value
-      members
-    }
-  }
-`;
-
 export default function ReadinessGate({ children }: { children: React.ReactNode }) {
-  const { data, loading, error } = useQuery<any>(CHECK_READINESS, {
-    pollInterval: 3000,
-  });
-
-  useEffect(() => {
-    if (error) {
-      console.log('Hasura connection error:', error);
-    }
-  }, [error]);
-
+  const [readinessData, setReadinessData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [analyticsReady, setAnalyticsReady] = useState(false);
 
   useEffect(() => {
+    let active = true;
+    const checkReadiness = async () => {
+      try {
+        const res = await fetch('/api/analytics/readiness');
+        if (res.ok) {
+          const data = await res.json();
+          if (active) {
+            setReadinessData(data);
+            setLoading(false);
+          }
+        }
+      } catch (err: any) {
+        if (active) {
+          setError(err.message || 'Error checking readiness');
+          setLoading(false);
+        }
+      }
+    };
+
     const checkAnalytics = async () => {
       try {
         const res = await fetch('/api/analytics/top-movers');
         if (res.ok) {
-          setAnalyticsReady(true);
+          if (active) setAnalyticsReady(true);
         } else {
-          setAnalyticsReady(false);
+          if (active) setAnalyticsReady(false);
         }
       } catch (err) {
-        setAnalyticsReady(false);
+        if (active) setAnalyticsReady(false);
       }
     };
 
+    checkReadiness();
     checkAnalytics();
-    const interval = setInterval(checkAnalytics, 3000);
-    return () => clearInterval(interval);
+
+    const interval = setInterval(() => {
+      checkReadiness();
+      checkAnalytics();
+    }, 5000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
   }, []);
 
-  const itemsMetadataCount = data?.items_metadata_aggregate?.aggregate?.count || 0;
-  const priceStreamCount = data?.latest_item_prices_aggregate?.aggregate?.count || 0;
-
-  const itemsMetadataReady = itemsMetadataCount > 0;
-  const priceStreamReady = priceStreamCount > 0;
+  const itemsMetadataReady = readinessData?.metadata_count > 0;
+  const priceStreamReady = readinessData?.clean_count > 0;
 
   const isReady = itemsMetadataReady && priceStreamReady && analyticsReady;
 
@@ -81,7 +70,7 @@ export default function ReadinessGate({ children }: { children: React.ReactNode 
 
     const preloadAllIcons = async () => {
       try {
-        console.log("Preloading item icons from WeirdGloop...");
+        console.log("Preloading item icons...");
         const urlsToPreload = new Set<string>();
 
         try {
@@ -98,13 +87,14 @@ export default function ReadinessGate({ children }: { children: React.ReactNode 
         }
 
         try {
-          const { data: itemsData } = await client.query<any>({
-            query: GET_ITEMS,
-          });
-          const items = itemsData?.items_metadata || [];
-          items.slice(0, 20).forEach((item: any) => {
-            urlsToPreload.add(`https://chisel.weirdgloop.org/static/img/osrs-sprite/${item.item_id}.png`);
-          });
+          const res = await fetch('/api/analytics/items');
+          if (res.ok) {
+            const data = await res.json();
+            const items = data.items_metadata || [];
+            items.slice(0, 20).forEach((item: any) => {
+              urlsToPreload.add(`https://chisel.weirdgloop.org/static/img/osrs-sprite/${item.item_id}.png`);
+            });
+          }
         } catch (err) {
           console.error("Error querying items for preloading:", err);
         }

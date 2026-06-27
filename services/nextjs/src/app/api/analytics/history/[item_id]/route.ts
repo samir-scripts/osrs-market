@@ -10,28 +10,15 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const days = searchParams.get('days') || '7';
     
-    const backendUrl = process.env.ANALYTICS_SERVICE_URL || 'http://rust-processor:8001';
-    const res = await fetch(`${backendUrl}/items/${item_id}/history?days=${days}`);
+    const backendUrl = process.env.BACKEND_URL || 'http://fastapi-backend:8000';
+    const res = await fetch(`${backendUrl}/api/prices/historical/${item_id}`);
     
     if (!res.ok) {
-      return NextResponse.json({ data: [] });
+      return NextResponse.json({ timestamps: [], avg_high_prices: [], avg_low_prices: [], total_volumes: [] });
     }
     
     const backendData = await res.json();
-    
-    let rawData = backendData.data || [];
-    if (!Array.isArray(rawData)) {
-      rawData = [rawData];
-    }
-    
-    const mappedData = rawData.map((tick: any) => ({
-      timestamp: tick.timestamp,
-      avg_high_price: tick.avgHighPrice ?? null,
-      avg_low_price: tick.avgLowPrice ?? null,
-      high_price_volume: tick.highPriceVolume ?? null,
-      low_price_volume: tick.lowPriceVolume ?? null,
-    }));
-    return NextResponse.json({ data: mappedData });
+    return NextResponse.json(backendData);
   } catch (error: unknown) {
     console.error(`Error in API /api/analytics/history/${item_id}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';

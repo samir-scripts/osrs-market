@@ -1,39 +1,22 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSubscription } from '@apollo/client/react';
-import { gql } from '@apollo/client';
+import { useStore } from '../store/useStore';
 import Panel from './Panel';
 import PriceChart from './PriceChart';
 import StatRow from './StatRow';
 import LiveIndicator from './LiveIndicator';
 import AlertBanner from './AlertBanner';
 import { UpdateTimer } from './UpdateTimer';
-import { useStore } from '../store/useStore';
 import ConnectionToast from './ConnectionToast';
 
-const LATEST_PRICE_SUBSCRIPTION = gql`
-  subscription GetLatestPrice($itemId: Int!) {
-    latest_item_prices_by_pk(item_id: $itemId) {
-      item_id
-      avg_high_price
-      avg_low_price
-      high_price_volume
-      low_price_volume
-      last_updated
-    }
-  }
-`;
-
-const ACTIVE_ALERTS_SUBSCRIPTION = gql`
-  subscription GetActiveAlerts($itemId: Int!) {
-    active_price_alerts(where: { item_id: { _eq: $itemId }, is_active: { _eq: true } }) {
-      alert_id
-      price_threshold
-      comparison_operator
-    }
-  }
-`;
+// Client-side alerts using localStorage
+interface PriceAlert {
+  alert_id: string;
+  item_id: number;
+  price_threshold: number;
+  comparison_operator: string;
+}
 
 export default function DashboardContent() {
   const selectedItemId = useStore((state) => state.selectedItemId);
@@ -59,24 +42,46 @@ export default function DashboardContent() {
     setLargeIconFailed(false);
   }, [selectedItemId]);
 
-  const { data: priceData, loading: priceLoading } = useSubscription<any>(
-    LATEST_PRICE_SUBSCRIPTION,
-    {
-      variables: { itemId: selectedItemId || 2 },
-      skip: selectedItemId === null,
-    }
-  );
+  const [latestPrice, setLatestPrice] = useState<any>(null);
+  const [priceLoading, setPriceLoading] = useState(true);
+  const [activeAlerts, setActiveAlerts] = useState<PriceAlert[]>([]);
 
-  const { data: alertsData } = useSubscription<any>(
-    ACTIVE_ALERTS_SUBSCRIPTION,
-    {
-      variables: { itemId: selectedItemId || 2 },
-      skip: selectedItemId === null,
-    }
-  );
+  // Fetch latest price
+  useEffect(() => {
+    if (!selectedItemId) return;
+    let active = true;
+    
+    const fetchLatest = async () => {
+      try {
+        const res = await fetch(`/api/analytics/latest/${selectedItemId}`);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        if (active) {
+          setLatestPrice(data.latest_item_prices_by_pk);
+          setPriceLoading(false);
+        }
+      } catch (err) {
+        if (active) {
+          setPriceLoading(false);
+        }
+      }
+    };
+    
+    fetchLatest();
+    const interval = setInterval(fetchLatest, 10000); // Poll every 10s
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [selectedItemId, refreshKey]);
 
-  const latestPrice = priceData?.latest_item_prices_by_pk;
-  const activeAlerts = alertsData?.active_price_alerts || [];
+  // Load alerts from localStorage
+  useEffect(() => {
+    if (!selectedItemId) return;
+    const stored = localStorage.getItem('osrs_alerts');
+    const alerts: PriceAlert[] = stored ? JSON.parse(stored) : [];
+    setActiveAlerts(alerts.filter(a => a.item_id === selectedItemId));
+  }, [selectedItemId]);
 
   useEffect(() => {
     if (latestPrice && activeAlerts.length > 0) {
@@ -115,38 +120,22 @@ export default function DashboardContent() {
     if (!selectedItemId || !alertThreshold) return;
 
     try {
-      const insertQuery = `
-        mutation CreateAlert($itemId: Int!, $threshold: bigint!, $operator: String!) {
-          insert_active_price_alerts_one(object: {
-            item_id: $itemId,
-            price_threshold: $threshold,
-            comparison_operator: $operator
-          }) {
-            alert_id
-          }
-        }
-      `;
+      const stored = localStorage.getItem('osrs_alerts');
+      const alerts: PriceAlert[] = stored ? JSON.parse(stored) : [];
       
-      const res = await fetch('/api/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-hasura-admin-secret': 'hasura_secure_admin_secret',
-        },
-        body: JSON.stringify({
-          query: insertQuery,
-          variables: {
-            itemId: selectedItemId,
-            threshold: alertThreshold,
-            operator: alertOperator,
-          },
-        }),
-      });
-
-      if (res.ok) {
-        setAlertThreshold('');
-        alert('Alert registered in database successfully!');
-      }
+      const newAlert: PriceAlert = {
+        alert_id: Math.random().toString(36).substring(2, 9),
+        item_id: selectedItemId,
+        price_threshold: Number(alertThreshold),
+        comparison_operator: alertOperator
+      };
+      
+      const updated = [...alerts, newAlert];
+      localStorage.setItem('osrs_alerts', JSON.stringify(updated));
+      
+      setActiveAlerts(updated.filter(a => a.item_id === selectedItemId));
+      setAlertThreshold('');
+      alert('Alert registered successfully in local storage!');
     } catch (err) {
       console.error('Error creating alert:', err);
     }

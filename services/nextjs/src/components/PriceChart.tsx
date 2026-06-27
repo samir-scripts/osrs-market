@@ -99,7 +99,18 @@ export default function PriceChart() {
       if (!res.ok) throw new Error('Failed to fetch price history');
       const json = await res.json();
       if (!signal.aborted) {
-        const fetchedData = json.data || [];
+        const fetchedData: PriceTick[] = [];
+        if (json.timestamps) {
+          for (let i = 0; i < json.timestamps.length; i++) {
+            fetchedData.push({
+              timestamp: Math.floor(json.timestamps[i] / 1000), // convert ms to seconds
+              avg_high_price: json.avg_high_prices[i],
+              avg_low_price: json.avg_low_prices[i],
+              high_price_volume: json.total_volumes[i],
+              low_price_volume: 0,
+            });
+          }
+        }
         setData(fetchedData);
         setError(null);
         historyCache[cacheKey] = { data: fetchedData, refreshKey };
@@ -119,20 +130,36 @@ export default function PriceChart() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetchHistory(controller.signal);
+    const timer = setTimeout(() => {
+      fetchHistory(controller.signal);
+    }, 0);
     return () => {
+      clearTimeout(timer);
       controller.abort();
     };
   }, [itemId, refreshKey]);
 
+  const [currentTimestamp, setCurrentTimestamp] = useState<number>(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentTimestamp(Math.floor(Date.now() / 1000));
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [refreshKey]);
+
+  const cutoff = currentTimestamp ? currentTimestamp - (daysframe * 86400) : 0;
+
   const filteredData = React.useMemo(() => {
     if (data.length === 0) return [];
-    if (daysframe === 30) return data;
-    
-    const maxTimestamp = Math.max(...data.map(d => d.timestamp));
-    const cutoff = maxTimestamp - (daysframe * 86400);
+    if (!currentTimestamp) return data;
     return data.filter(d => d.timestamp >= cutoff);
-  }, [data, daysframe]);
+  }, [data, cutoff, currentTimestamp]);
+
+  const chartDomain = React.useMemo(() => {
+    if (!currentTimestamp) return undefined;
+    return [cutoff, currentTimestamp] as [number, number];
+  }, [cutoff, currentTimestamp]);
 
   const formatDate = (epochSec: number) => {
     const d = new Date(epochSec * 1000);
@@ -185,7 +212,7 @@ export default function PriceChart() {
       {error && <div style={{ padding: '24px', color: 'var(--color-negative)' }}>{error}</div>}
       {!loading && !error && filteredData.length === 0 && (
         <div style={{ padding: '24px', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-          NO HISTORICAL DATA FOR THIS ITEM IN MINIO PARQUET YET
+          NO HISTORICAL DATA FOR THIS ITEM IN CLICKHOUSE YET
         </div>
       )}
       {!loading && !error && filteredData.length > 0 && (
@@ -196,6 +223,8 @@ export default function PriceChart() {
                 <CartesianGrid stroke={OSRS_CHART_THEME.cartesianGrid.stroke} strokeDasharray={OSRS_CHART_THEME.cartesianGrid.strokeDasharray} />
                 <XAxis
                   dataKey="timestamp"
+                  type={currentTimestamp ? 'number' : 'category'}
+                  domain={chartDomain}
                   tickFormatter={formatDate}
                   stroke={OSRS_CHART_THEME.xAxis.stroke}
                   tick={OSRS_CHART_THEME.xAxis.tick}
