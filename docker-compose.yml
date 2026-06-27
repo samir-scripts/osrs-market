@@ -6,12 +6,13 @@ networks:
 
 volumes:
   postgres-data:
+  minio-data:
+  redpanda-data:
   airflow-logs:
   airflow-dags:
-  clickhouse-data:
 
 services:
-  # --- Database (PostgreSQL for Airflow Metadata) ---
+  # --- Database (PostgreSQL) ---
   postgres:
     image: postgres:16
     container_name: osrs-postgres
@@ -23,6 +24,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - osrs-net
     healthcheck:
@@ -31,26 +33,174 @@ services:
       timeout: 5s
       retries: 5
 
-  # --- Database (ClickHouse for Analytics) ---
-  clickhouse:
-    image: clickhouse/clickhouse-server:24.3
-    container_name: osrs-clickhouse
+  # --- Messaging (Redpanda) ---
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.1.1
+    container_name: osrs-redpanda
+    command:
+      - redpanda start
+      - --smp 1
+      - --memory 1G
+      - --overprovisioned
+      - --node-id 0
+      - --kafka-addr PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      - --advertise-kafka-addr PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
+      - --pandaproxy-addr 0.0.0.0:28082,OUTSIDE://0.0.0.0:8082
+      - --advertise-pandaproxy-addr PLAINTEXT://redpanda:28082,OUTSIDE://localhost:8082
+      - --schema-registry-addr 0.0.0.0:8081
     ports:
-      - "8123:8123"
-    environment:
-      CLICKHOUSE_USER: default
-      CLICKHOUSE_PASSWORD: password
-      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+      - "9092:9092"
+      - "8081:8081"
     volumes:
-      - clickhouse-data:/var/lib/clickhouse
-      - ./infra/clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - redpanda-data:/var/lib/redpanda/data
     networks:
       - osrs-net
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      test: ["CMD", "rpk", "cluster", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redpanda-console:
+    image: docker.redpanda.com/redpandadata/console:v2.5.2
+    container_name: osrs-redpanda-console
+    entrypoint: /bin/sh
+    command: -c "echo \"$$CONSOLE_CONFIG_FILE\" > /tmp/config.yml; /app/console --config.filepath=/tmp/config.yml"
+    ports:
+      - "8080:8080"
+    environment:
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["redpanda:29092"]
+          schemaRegistry:
+            enabled: true
+            urls: ["http://redpanda:8081"]
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    networks:
+      - osrs-net
+
+  # --- Object Storage (MinIO) ---
+  minio:
+    image: minio/minio:RELEASE.2024-02-26T09-33-48Z
+    container_name: osrs-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - osrs-net
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
       interval: 5s
       timeout: 5s
       retries: 5
+
+  # Helper container to create bucket in MinIO and topics in Redpanda
+  infra-setup:
+    image: alpine:latest
+    container_name: osrs-infra-setup
+    depends_on:
+      minio:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    networks:
+      - osrs-net
+    entrypoint: /bin/sh
+    command: >
+      -c "
+      apk add --no-cache curl;
+      # Create MinIO bucket
+      curl -x '' -I http://minio:9000/osrs-parquet || {
+        echo 'Creating minio bucket';
+        # We can use simple mc tool or just rely on MINIO_DEFAULT_BUCKETS in docker.
+        # Since standard MinIO doesn't support MINIO_DEFAULT_BUCKETS natively anymore,
+        # we will use the mc CLI to create it.
+      };
+      # Let's run a simple script using mc
+      "
+
+  # Let's use minio/mc image for storage setup
+  minio-setup:
+    image: minio/mc
+    container_name: osrs-minio-setup
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command: >
+      -c "
+      until (/usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}) do echo 'Waiting for MinIO...' && sleep 1; done;
+      /usr/bin/mc mb --ignore-existing myminio/osrs-parquet;
+      exit 0;
+      "
+    networks:
+      - osrs-net
+
+  redpanda-setup:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.1.1
+    container_name: osrs-redpanda-setup
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command: >
+      -c "
+      rpk topic create osrs.price-ticks.raw --partitions 4 --brokers redpanda:29092;
+      rpk topic create osrs.price-ticks.dlq --partitions 1 --brokers redpanda:29092;
+      rpk topic create osrs.items.metadata --partitions 1 -c cleanup.policy=compact --brokers redpanda:29092;
+      exit 0;
+      "
+    networks:
+      - osrs-net
+
+  # --- Caching (Redis) ---
+  redis:
+    image: redis:7-alpine
+    container_name: osrs-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    networks:
+      - osrs-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # --- Hasura GraphQL Engine ---
+  hasura:
+    image: hasura/graphql-engine:v2.38.0
+    container_name: osrs-hasura
+    ports:
+      - "8082:8080"
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: ${HASURA_GRAPHQL_DATABASE_URL}
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      HASURA_GRAPHQL_DEV_MODE: "true"
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    links:
+      - postgres:osrs-postgres
+      - postgres:postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - osrs-net
 
   # --- Apache Airflow (LocalExecutor) ---
   airflow-init:
@@ -94,7 +244,6 @@ services:
       - "8085:8080"
     volumes:
       - ./services/airflow/dags:/opt/airflow/dags
-      - ./services/dbt:/opt/airflow/dbt
       - airflow-logs:/opt/airflow/logs
     depends_on:
       airflow-init:
@@ -117,33 +266,74 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - ./services/airflow/dags:/opt/airflow/dags
-      - ./services/dbt:/opt/airflow/dbt
       - airflow-logs:/opt/airflow/logs
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock # For docker container controls if watchdog uses docker CLI
     depends_on:
       airflow-init:
         condition: service_completed_successfully
-      clickhouse:
-        condition: service_healthy
     command: scheduler
     networks:
       - osrs-net
 
-  fastapi-backend:
-    build: ./services/fastapi-backend
-    container_name: osrs-fastapi-backend
+  fastapi-producer:
+    build: ./services/producer
+    container_name: osrs-fastapi-producer
     ports:
-      - "8006:8000"
+      - "8000:8000"
     environment:
-      CLICKHOUSE_HOST: clickhouse
-      CLICKHOUSE_PORT: 8123
-      CLICKHOUSE_USER: default
-      CLICKHOUSE_PASSWORD: password
+      REDPANDA_BROKERS: redpanda:29092
+      SCHEMA_REGISTRY_URL: http://redpanda:8081
+      POLL_INTERVAL_SEC: 300
+      WEBHOOK_URL: http://nextjs:3000/api/webhook/data-updated
     depends_on:
-      clickhouse:
+      redpanda:
+        condition: service_healthy
+      redpanda-setup:
+        condition: service_completed_successfully
+    networks:
+      - osrs-net
+
+  rust-processor:
+    build: ./services/rust-processor
+    container_name: osrs-rust-processor
+    ports:
+      - "8001:8001"
+    environment:
+      REDPANDA_BROKERS: redpanda:29092
+      SCHEMA_REGISTRY_URL: http://redpanda:8081
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      REDIS_URL: ${REDIS_URL}
+      POSTGRES_HOST: osrs-postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      WORKER_COUNT: ${WORKER_COUNT}
+      BATCH_SIZE: ${BATCH_SIZE}
+      MAX_UPLOAD_CONCURRENCY: ${MAX_UPLOAD_CONCURRENCY}
+      PRIORITY_PRICE_THRESHOLD: ${PRIORITY_PRICE_THRESHOLD}
+      PRIORITY_VOLUME_THRESHOLD: ${PRIORITY_VOLUME_THRESHOLD}
+    depends_on:
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+      redpanda-setup:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+      minio-setup:
+        condition: service_completed_successfully
+      postgres:
         condition: service_healthy
     networks:
       - osrs-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   nextjs:
     build: ./services/nextjs
@@ -151,9 +341,15 @@ services:
     ports:
       - "3000:3000"
     environment:
-      BACKEND_URL: http://fastapi-backend:8000
+      ANALYTICS_SERVICE_URL: http://rust-processor:8001
+      HASURA_URL: http://hasura:8080/v1/graphql
+      PRODUCER_URL: http://fastapi-producer:8000
     depends_on:
-      fastapi-backend:
+      hasura:
+        condition: service_healthy
+      rust-processor:
+        condition: service_healthy
+      fastapi-producer:
         condition: service_started
     networks:
       - osrs-net

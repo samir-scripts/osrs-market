@@ -58,34 +58,3 @@ checkpoints/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# Logs
-*.log
-logs/
-**/logs/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# dbt artifacts and databases
-**/target/
-**/dbt_modules/
-**/dbt_packages/
-*.duckdb
-
-# Virtual environments
-dbt_venv/
-.venv/
-venv/
-env/
-
-# IDEs and Editors
-.vscode/
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-

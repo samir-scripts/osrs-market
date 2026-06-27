@@ -1,12 +1,25 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 import Panel from './Panel';
 import { useStore } from '../store/useStore';
 
+const GET_ITEMS = gql`
+  query GetItems {
+    items_metadata(order_by: { name: asc }) {
+      item_id
+      name
+      value
+      members
+    }
+  }
+`;
+
 interface Mover {
   item_id: number;
-  name?: string;
+  name?: string; // Resolved from metadata if available
   start_price: number;
   end_price: number;
   percent_change: number;
@@ -14,7 +27,6 @@ interface Mover {
 
 export default function PriceTable() {
   const [movers, setMovers] = useState<Mover[]>([]);
-  const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
@@ -24,34 +36,23 @@ export default function PriceTable() {
   const setSelectedItemName = useStore((state) => state.setSelectedItemName);
   const setTriggeredAlerts = useStore((state) => state.setTriggeredAlerts);
 
-  // Fetch items list
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const res = await fetch('/api/analytics/items');
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        setItems(data.items_metadata || []);
-      } catch (err) {
-        console.error('Error fetching items for mapping:', err);
-      }
-    };
-    fetchItems();
-  }, []);
-
+  const { data: itemsData } = useQuery<any>(GET_ITEMS);
   const itemsMap = useMemo(() => {
     const map = new Map<number, string>();
-    items.forEach((item: any) => {
-      map.set(item.item_id, item.name);
-    });
+    if (itemsData?.items_metadata) {
+      itemsData.items_metadata.forEach((item: any) => {
+        map.set(item.item_id, item.name);
+      });
+    }
     return map;
-  }, [items]);
+  }, [itemsData]);
 
   const handleImageError = (itemId: number) => {
     setFailedImages(prev => ({ ...prev, [itemId]: true }));
   };
 
   const onSelectItem = (itemId: number, name: string) => {
+    // Explicitly cast to Number defensively
     setSelectedItemId(Number(itemId));
     setSelectedItemName(name);
     setTriggeredAlerts([]);
@@ -88,7 +89,7 @@ export default function PriceTable() {
       }
     >
       <div style={{ overflowX: 'auto', height: '100%' }}>
-        {loading && <div style={{ padding: '12px', color: 'var(--color-text-muted)' }}>COMPUTING TOP MOVERS FROM CLICKHOUSE...</div>}
+        {loading && <div style={{ padding: '12px', color: 'var(--color-text-muted)' }}>COMPUTING TOP MOVERS FROM PARQUET...</div>}
         {error && <div style={{ padding: '12px', color: 'var(--color-negative)' }}>{error}</div>}
         {!loading && !error && movers.length === 0 && (
           <div style={{ padding: '12px', color: 'var(--color-text-muted)' }}>NO MOVERS DATA AVAILABLE</div>
@@ -108,6 +109,7 @@ export default function PriceTable() {
             <tbody>
               {movers.map(mover => {
                 const isPositive = mover.percent_change >= 0;
+                // Defensive casting
                 const moverId = Number(mover.item_id);
                 const itemName = mover.name || itemsMap.get(moverId) || `Item #${moverId}`;
                 return (

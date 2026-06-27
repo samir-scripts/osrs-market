@@ -1,0 +1,214 @@
+[0m18:47:58.375553 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104766120>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x105d1bb10>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x105d1b750>]}
+
+
+============================== 18:47:58.378573 | dc45db5c-28a8-4d61-a769-b3d978035eb7 ==============================
+[0m18:47:58.378573 [info ] [MainThread]: Running with dbt=1.11.11
+[0m18:47:58.378843 [debug] [MainThread]: running dbt with arguments {'static_parser': 'True', 'send_anonymous_usage_stats': 'True', 'profiles_dir': '.', 'target_path': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'printer_width': '80', 'log_cache_events': 'False', 'invocation_command': 'dbt run --profiles-dir .', 'log_format': 'default', 'warn_error': 'None', 'debug': 'False', 'indirect_selection': 'eager', 'use_experimental_parser': 'False', 'cache_selected_only': 'False', 'introspect': 'True', 'version_check': 'True', 'write_json': 'True', 'partial_parse': 'True', 'quiet': 'False', 'fail_fast': 'False', 'log_path': '/Users/samirkatakamsetty/Desktop/Home/Data Engineering Projects/osrs-market/services/dbt/logs', 'no_print': 'None', 'use_colors': 'True', 'empty': 'False'}
+[0m18:47:58.509989 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'dc45db5c-28a8-4d61-a769-b3d978035eb7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104c489d0>]}
+[0m18:47:58.532500 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'dc45db5c-28a8-4d61-a769-b3d978035eb7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x105dc0d10>]}
+[0m18:47:58.533479 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m18:47:58.662503 [debug] [MainThread]: checksum: 30a8cc8fdcbf66701b0944d4ccce3fa46dd04b61e5df68b9f16d57b2e0e3f0be, vars: {}, profile: , target: , version: 1.11.11
+[0m18:47:58.663911 [info ] [MainThread]: Unable to do partial parsing because saved manifest not found. Starting full parse.
+[0m18:47:58.664075 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'partial_parser', 'label': 'dc45db5c-28a8-4d61-a769-b3d978035eb7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x105db2950>]}
+[0m18:47:59.503707 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'dc45db5c-28a8-4d61-a769-b3d978035eb7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1046e6d50>]}
+[0m18:47:59.529708 [debug] [MainThread]: Wrote artifact WritableManifest to /Users/samirkatakamsetty/Desktop/Home/Data Engineering Projects/osrs-market/services/dbt/target/manifest.json
+[0m18:47:59.531185 [debug] [MainThread]: Wrote artifact SemanticManifest to /Users/samirkatakamsetty/Desktop/Home/Data Engineering Projects/osrs-market/services/dbt/target/semantic_manifest.json
+[0m18:47:59.537216 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'dc45db5c-28a8-4d61-a769-b3d978035eb7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x105e8fd90>]}
+[0m18:47:59.537482 [info ] [MainThread]: Found 1 model, 485 macros
+[0m18:47:59.537615 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'dc45db5c-28a8-4d61-a769-b3d978035eb7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1064bed00>]}
+[0m18:47:59.538424 [info ] [MainThread]: 
+[0m18:47:59.538564 [info ] [MainThread]: Concurrency: 1 threads (target='dev')
+[0m18:47:59.538655 [info ] [MainThread]: 
+[0m18:47:59.538856 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m18:47:59.539236 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_dev'
+[0m18:47:59.571694 [debug] [ThreadPool]: Using duckdb connection "list_dev"
+[0m18:47:59.571936 [debug] [ThreadPool]: On list_dev: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "connection_name": "list_dev"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"dev"'
+    
+  
+  
+[0m18:47:59.572060 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m18:48:00.399416 [debug] [ThreadPool]: SQL status: OK in 0.827 seconds
+[0m18:48:00.401094 [debug] [ThreadPool]: On list_dev: Close
+[0m18:48:00.401996 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_dev, now create_dev_main)
+[0m18:48:00.402599 [debug] [ThreadPool]: Creating schema "database: "dev"
+schema: "main"
+"
+[0m18:48:00.406932 [debug] [ThreadPool]: Using duckdb connection "create_dev_main"
+[0m18:48:00.407121 [debug] [ThreadPool]: On create_dev_main: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "connection_name": "create_dev_main"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='dev'
+        and type='sqlite'
+    
+  
+[0m18:48:00.407240 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m18:48:00.408006 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m18:48:00.408666 [debug] [ThreadPool]: Using duckdb connection "create_dev_main"
+[0m18:48:00.408779 [debug] [ThreadPool]: On create_dev_main: BEGIN
+[0m18:48:00.408951 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m18:48:00.409034 [debug] [ThreadPool]: Using duckdb connection "create_dev_main"
+[0m18:48:00.409119 [debug] [ThreadPool]: On create_dev_main: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "connection_name": "create_dev_main"} */
+
+    
+    
+        create schema if not exists "dev"."main"
+    
+[0m18:48:00.409436 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m18:48:00.409717 [debug] [ThreadPool]: On create_dev_main: COMMIT
+[0m18:48:00.409818 [debug] [ThreadPool]: Using duckdb connection "create_dev_main"
+[0m18:48:00.409902 [debug] [ThreadPool]: On create_dev_main: COMMIT
+[0m18:48:00.410036 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m18:48:00.410125 [debug] [ThreadPool]: On create_dev_main: Close
+[0m18:48:00.411238 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly create_dev_main, now list_dev_main)
+[0m18:48:00.421115 [debug] [ThreadPool]: Using duckdb connection "list_dev_main"
+[0m18:48:00.421293 [debug] [ThreadPool]: On list_dev_main: BEGIN
+[0m18:48:00.421387 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m18:48:00.421670 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m18:48:00.421757 [debug] [ThreadPool]: Using duckdb connection "list_dev_main"
+[0m18:48:00.421848 [debug] [ThreadPool]: On list_dev_main: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "connection_name": "list_dev_main"} */
+select
+      'dev' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'dev'
+  
+[0m18:48:00.424400 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m18:48:00.425283 [debug] [ThreadPool]: On list_dev_main: ROLLBACK
+[0m18:48:00.426883 [debug] [ThreadPool]: Failed to rollback 'list_dev_main'
+[0m18:48:00.427031 [debug] [ThreadPool]: On list_dev_main: Close
+[0m18:48:00.427920 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'dc45db5c-28a8-4d61-a769-b3d978035eb7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1066cb350>]}
+[0m18:48:00.428391 [debug] [MainThread]: Using duckdb connection "master"
+[0m18:48:00.428492 [debug] [MainThread]: On master: BEGIN
+[0m18:48:00.428593 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m18:48:00.428884 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m18:48:00.429009 [debug] [MainThread]: On master: COMMIT
+[0m18:48:00.429111 [debug] [MainThread]: Using duckdb connection "master"
+[0m18:48:00.429201 [debug] [MainThread]: On master: COMMIT
+[0m18:48:00.429369 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m18:48:00.429472 [debug] [MainThread]: On master: Close
+[0m18:48:00.431074 [debug] [Thread-1 (]: Began running node model.osrs_dbt.daily_item_history
+[0m18:48:00.431336 [info ] [Thread-1 (]: 1 of 1 START sql external model main.daily_item_history ........................ [RUN]
+[0m18:48:00.431542 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly list_dev_main, now model.osrs_dbt.daily_item_history)
+[0m18:48:00.431674 [debug] [Thread-1 (]: Began compiling node model.osrs_dbt.daily_item_history
+[0m18:48:00.435004 [debug] [Thread-1 (]: Writing injected SQL for node "model.osrs_dbt.daily_item_history"
+[0m18:48:00.435540 [debug] [Thread-1 (]: Began executing node model.osrs_dbt.daily_item_history
+[0m18:48:00.459408 [debug] [Thread-1 (]: Using duckdb connection "model.osrs_dbt.daily_item_history"
+[0m18:48:00.459600 [debug] [Thread-1 (]: On model.osrs_dbt.daily_item_history: BEGIN
+[0m18:48:00.459718 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m18:48:00.460006 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m18:48:00.460114 [debug] [Thread-1 (]: Using duckdb connection "model.osrs_dbt.daily_item_history"
+[0m18:48:00.460225 [debug] [Thread-1 (]: On model.osrs_dbt.daily_item_history: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.daily_item_history"} */
+
+  
+    
+    
+
+    create  table
+      "dev"."main"."daily_item_history__dbt_tmp"
+  
+    as (
+      
+
+SELECT
+    item_id,
+    epoch(date_trunc('day', to_timestamp(timestamp)))::BIGINT as timestamp,
+    ROUND(AVG(avg_high_price), 2) as avg_high_price,
+    ROUND(AVG(avg_low_price), 2) as avg_low_price,
+    ROUND(AVG(high_price_volume), 2) as high_price_volume,
+    ROUND(AVG(low_price_volume), 2) as low_price_volume
+FROM read_parquet('s3://osrs-parquet/ticks/*/*/*/*.parquet', hive_partitioning=True)
+GROUP BY item_id, date_trunc('day', to_timestamp(timestamp))
+    );
+  
+  
+[0m18:48:00.704078 [debug] [Thread-1 (]: SQL status: OK in 0.244 seconds
+[0m18:48:00.704701 [debug] [Thread-1 (]: Using duckdb connection "model.osrs_dbt.daily_item_history"
+[0m18:48:00.704846 [debug] [Thread-1 (]: On model.osrs_dbt.daily_item_history: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.daily_item_history"} */
+
+    select count(*) as row_count from "dev"."main"."daily_item_history__dbt_tmp"
+  
+[0m18:48:00.705490 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m18:48:00.706143 [debug] [Thread-1 (]: Writing runtime sql for node "model.osrs_dbt.daily_item_history"
+[0m18:48:00.706714 [debug] [Thread-1 (]: Using duckdb connection "model.osrs_dbt.daily_item_history"
+[0m18:48:00.706853 [debug] [Thread-1 (]: On model.osrs_dbt.daily_item_history: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.daily_item_history"} */
+
+[0m18:48:00.707004 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m18:48:00.708173 [debug] [Thread-1 (]: Using duckdb connection "model.osrs_dbt.daily_item_history"
+[0m18:48:00.708306 [debug] [Thread-1 (]: On model.osrs_dbt.daily_item_history: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.daily_item_history"} */
+copy "dev"."main"."daily_item_history__dbt_tmp" to 's3://osrs-parquet/marts/daily/daily_item_history.parquet' (format parquet)
+[0m18:48:00.758217 [debug] [Thread-1 (]: SQL status: OK in 0.050 seconds
+[0m18:48:00.758854 [debug] [Thread-1 (]: Writing runtime sql for node "model.osrs_dbt.daily_item_history"
+[0m18:48:00.759183 [debug] [Thread-1 (]: Using duckdb connection "model.osrs_dbt.daily_item_history"
+[0m18:48:00.759309 [debug] [Thread-1 (]: On model.osrs_dbt.daily_item_history: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.daily_item_history"} */
+
+      create or replace view "dev"."main"."daily_item_history__dbt_int" as (
+        select * from read_parquet('s3://osrs-parquet/marts/daily/daily_item_history.parquet', union_by_name=False)
+        -- if relation is empty, filter by all columns having null values
+        
+      );
+    
+[0m18:48:00.764321 [debug] [Thread-1 (]: SQL status: OK in 0.005 seconds
+[0m18:48:00.767171 [debug] [Thread-1 (]: Using duckdb connection "model.osrs_dbt.daily_item_history"
+[0m18:48:00.767340 [debug] [Thread-1 (]: On model.osrs_dbt.daily_item_history: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.daily_item_history"} */
+alter view "dev"."main"."daily_item_history__dbt_int" rename to "daily_item_history"
+[0m18:48:00.768067 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m18:48:00.772662 [debug] [Thread-1 (]: On model.osrs_dbt.daily_item_history: COMMIT
+[0m18:48:00.772841 [debug] [Thread-1 (]: Using duckdb connection "model.osrs_dbt.daily_item_history"
+[0m18:48:00.772956 [debug] [Thread-1 (]: On model.osrs_dbt.daily_item_history: COMMIT
+[0m18:48:00.786937 [debug] [Thread-1 (]: SQL status: OK in 0.014 seconds
+[0m18:48:00.789424 [debug] [Thread-1 (]: Using duckdb connection "model.osrs_dbt.daily_item_history"
+[0m18:48:00.789696 [debug] [Thread-1 (]: On model.osrs_dbt.daily_item_history: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.daily_item_history"} */
+
+      drop table if exists "dev"."main"."daily_item_history__dbt_backup" cascade
+    
+[0m18:48:00.790016 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m18:48:00.791321 [debug] [Thread-1 (]: Using duckdb connection "model.osrs_dbt.daily_item_history"
+[0m18:48:00.791446 [debug] [Thread-1 (]: On model.osrs_dbt.daily_item_history: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "osrs_dbt", "target_name": "dev", "node_id": "model.osrs_dbt.daily_item_history"} */
+
+      drop table if exists "dev"."main"."daily_item_history__dbt_tmp" cascade
+    
+[0m18:48:00.791835 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m18:48:00.792811 [debug] [Thread-1 (]: On model.osrs_dbt.daily_item_history: Close
+[0m18:48:00.793790 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'dc45db5c-28a8-4d61-a769-b3d978035eb7', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x107510b50>]}
+[0m18:48:00.794091 [info ] [Thread-1 (]: 1 of 1 OK created sql external model main.daily_item_history ................... [[32mOK[0m in 0.36s]
+[0m18:48:00.794322 [debug] [Thread-1 (]: Finished running node model.osrs_dbt.daily_item_history
+[0m18:48:00.794950 [debug] [MainThread]: Using duckdb connection "master"
+[0m18:48:00.795056 [debug] [MainThread]: On master: BEGIN
+[0m18:48:00.795150 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m18:48:00.795421 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m18:48:00.795542 [debug] [MainThread]: On master: COMMIT
+[0m18:48:00.795642 [debug] [MainThread]: Using duckdb connection "master"
+[0m18:48:00.795730 [debug] [MainThread]: On master: COMMIT
+[0m18:48:00.795890 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m18:48:00.795982 [debug] [MainThread]: On master: Close
+[0m18:48:00.796118 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m18:48:00.796215 [debug] [MainThread]: Connection 'model.osrs_dbt.daily_item_history' was properly closed.
+[0m18:48:00.796328 [info ] [MainThread]: 
+[0m18:48:00.796438 [info ] [MainThread]: Finished running 1 external model in 0 hours 0 minutes and 1.26 seconds (1.26s).
+[0m18:48:00.796690 [debug] [MainThread]: Command end result
+[0m18:48:00.808218 [debug] [MainThread]: Wrote artifact WritableManifest to /Users/samirkatakamsetty/Desktop/Home/Data Engineering Projects/osrs-market/services/dbt/target/manifest.json
+[0m18:48:00.812714 [debug] [MainThread]: Wrote artifact SemanticManifest to /Users/samirkatakamsetty/Desktop/Home/Data Engineering Projects/osrs-market/services/dbt/target/semantic_manifest.json
+[0m18:48:00.815532 [debug] [MainThread]: Wrote artifact RunExecutionResult to /Users/samirkatakamsetty/Desktop/Home/Data Engineering Projects/osrs-market/services/dbt/target/run_results.json
+[0m18:48:00.815667 [info ] [MainThread]: 
+[0m18:48:00.815811 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m18:48:00.815914 [info ] [MainThread]: 
+[0m18:48:00.816036 [info ] [MainThread]: Done. PASS=1 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=1
+[0m18:48:00.840394 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": true, "command_wall_clock_time": 2.5008428, "process_in_blocks": "0", "process_kernel_time": 0.407901, "process_mem_max_rss": "272613376", "process_out_blocks": "0", "process_user_time": 2.318159}
+[0m18:48:00.840693 [debug] [MainThread]: Command `dbt run` succeeded at 18:48:00.840649 after 2.50 seconds
+[0m18:48:00.840905 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1069d2c10>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x106a79520>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x10668ded0>]}
+[0m18:48:00.841058 [debug] [MainThread]: Flushing usage events
+[0m18:48:01.007823 [debug] [MainThread]: An error was encountered while trying to flush usage events

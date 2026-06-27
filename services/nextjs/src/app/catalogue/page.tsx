@@ -1,36 +1,41 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
+import { ApolloProvider, useQuery } from '@apollo/client/react';
+import { gql } from '@apollo/client';
+import { client } from '../../lib/apollo-client';
 import { useRouter } from 'next/navigation';
 import Fuse from 'fuse.js';
 
-export default function CataloguePage() {
+const GET_CATALOGUE = gql`
+  query GetCatalogue {
+    items_metadata {
+      item_id
+      name
+      value
+      item_type {
+        type_name
+      }
+      prices(limit: 2, order_by: { last_updated: desc }) {
+        avg_high_price
+        avg_low_price
+        high_price_volume
+        low_price_volume
+      }
+    }
+  }
+`;
+
+function CatalogueContent() {
+  const { data, loading, error } = useQuery<any>(GET_CATALOGUE);
   const router = useRouter();
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState('volume'); // 'price', 'volume', 'name', 'type'
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc', 'desc'
   const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
 
-  useEffect(() => {
-    const fetchCatalogue = async () => {
-      try {
-        const res = await fetch('/api/analytics/catalogue');
-        if (!res.ok) throw new Error('Failed to fetch catalogue data');
-        const data = await res.json();
-        setItems(data.items_metadata || []);
-        setError(null);
-      } catch (err: any) {
-        setError(err.message || 'Error loading catalogue');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCatalogue();
-  }, []);
+  let items = data?.items_metadata || [];
 
   const processedItems = useMemo(() => {
     let baseItems = items.map((item: any) => {
@@ -221,5 +226,13 @@ export default function CataloguePage() {
         </table>
       </div>
     </div>
+  );
+}
+
+export default function CataloguePage() {
+  return (
+    <ApolloProvider client={client}>
+      <CatalogueContent />
+    </ApolloProvider>
   );
 }
