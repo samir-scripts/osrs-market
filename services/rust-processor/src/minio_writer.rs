@@ -62,7 +62,7 @@ impl MinioWriter {
         let mut low_price_volume_b = Int64Builder::new();
 
         for tick in ticks {
-            item_id_b.append_value(tick.item_id);
+            item_id_b.append_value(tick.item_id as i64);
             timestamp_b.append_value(tick.timestamp);
             if let Some(v) = tick.avg_high_price { avg_high_price_b.append_value(v); } else { avg_high_price_b.append_null(); }
             if let Some(v) = tick.high_price_volume { high_price_volume_b.append_value(v); } else { high_price_volume_b.append_null(); }

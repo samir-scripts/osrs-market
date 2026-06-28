@@ -1,11 +1,16 @@
 import os
-import random
+import time
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import requests
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 import duckdb
-import psycopg2
+import pyarrow as pa
+import pyarrow.parquet as pq
+import pyarrow.dataset as ds
+from pyarrow import fs
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -27,98 +32,13 @@ def backfill_data():
     minio_endpoint = os.getenv("MINIO_ENDPOINT", "minio:9000")
     minio_user = os.getenv("MINIO_ROOT_USER", "minioadmin")
     minio_password = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin_secure_pass")
+    user_agent = os.getenv("USER_AGENT", "OSRS Price Tracker - @DevelopmentSandbox")
 
-    logger.info("Connecting to Postgres to fetch items metadata...")
-    items = []
-    try:
-        conn_pg = psycopg2.connect(
-            host=postgres_host,
-            database=postgres_db,
-            user=postgres_user,
-            password=postgres_password
-        )
-        cursor = conn_pg.cursor()
-        cursor.execute("SELECT item_id, name, value FROM public.items_metadata;")
-        rows = cursor.fetchall()
-        for r in rows:
-            items.append({
-                "item_id": r[0],
-                "name": r[1],
-                "value": r[2] or 100 # default price if value is null
-            })
-        cursor.close()
-        conn_pg.close()
-        logger.info(f"Successfully fetched {len(items)} items from Postgres.")
-    except Exception as e:
-        logger.warning(f"Failed to fetch items from Postgres: {e}. Using fallback item list.")
-
-    # Fallback items if Postgres is empty or connection fails
-    if not items:
-        fallback_ids = [2, 13457, 5014, 1363, 5096, 2128, 4298, 5497, 12622, 2472, 10006, 1781]
-        for fid in fallback_ids:
-            items.append({
-                "item_id": fid,
-                "name": f"Item #{fid}",
-                "value": random.randint(10, 10000)
-            })
-        logger.info(f"Populated fallback list with {len(items)} items.")
-
-    logger.info("Generating OSRS price tick history (random walk) for the last 30 days...")
-    
-    # We will generate data points every 4 hours for 30 days.
-    # 30 days * 6 points/day = 180 points per item.
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=30)
-    
-    ticks_data = []
-    
-    for item in items:
-        item_id = item["item_id"]
-        current_price = item["value"]
-        
-        current_time = start_date
-        while current_time <= end_date:
-            # Random walk: price changes by up to +/- 5%
-            change_percent = random.uniform(-0.05, 0.05)
-            # Cap the minimum price to 1gp
-            current_price = max(1.0, current_price * (1 + change_percent))
-            
-            avg_high = int(current_price)
-            avg_low = int(max(1.0, current_price * random.uniform(0.95, 0.99)))
-            high_vol = random.randint(10, 5000)
-            low_vol = random.randint(10, 5000)
-            
-            timestamp_epoch = int(current_time.timestamp())
-            
-            # Partition variables
-            year_val = current_time.year
-            month_val = current_time.month
-            day_val = current_time.day
-            
-            ticks_data.append((
-                item_id,
-                timestamp_epoch,
-                avg_high,
-                high_vol,
-                avg_low,
-                low_vol,
-                year_val,
-                month_val,
-                day_val
-            ))
-            
-            current_time += timedelta(hours=4)
-
-    logger.info(f"Generated {len(ticks_data)} ticks in total. Writing to MinIO using DuckDB...")
-    
-    # Initialize DuckDB connection
+    # Set up DuckDB connection to query existing timestamps in MinIO S3
     conn_db = duckdb.connect()
-    
-    # Install and load HTTPFS extension for S3 support
     conn_db.execute("INSTALL httpfs;")
     conn_db.execute("LOAD httpfs;")
     
-    # Configure S3 options for MinIO
     if minio_endpoint.startswith("http://"):
         minio_endpoint_clean = minio_endpoint[7:]
     elif minio_endpoint.startswith("https://"):
@@ -131,42 +51,147 @@ def backfill_data():
     conn_db.execute(f"SET s3_secret_access_key='{minio_password}';")
     conn_db.execute("SET s3_use_ssl=false;")
     conn_db.execute("SET s3_url_style='path';")
-    
-    # Create local table and insert data
-    conn_db.execute("""
-        CREATE TABLE ticks (
-            item_id INTEGER,
-            timestamp BIGINT,
-            avg_high_price BIGINT,
-            high_price_volume BIGINT,
-            avg_low_price BIGINT,
-            low_price_volume BIGINT,
-            year INTEGER,
-            month INTEGER,
-            day INTEGER
-        );
-    """)
-    
-    # Insert in chunks of 50,000 rows to prevent memory/statement size issues
-    chunk_size = 50000
-    for i in range(0, len(ticks_data), chunk_size):
-        chunk = ticks_data[i:i + chunk_size]
-        conn_db.executemany("INSERT INTO ticks VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", chunk)
-        logger.info(f"Loaded chunk {i//chunk_size + 1} ({len(chunk)} rows) into DuckDB memory.")
 
-    # Export partitioned parquet directly to MinIO
-    logger.info("Executing DuckDB COPY to partition and write Parquet files to MinIO...")
-    copy_sql = "COPY ticks TO 's3://osrs-parquet/ticks/' (FORMAT PARQUET, PARTITION_BY (year, month, day), OVERWRITE_OR_IGNORE 1);"
-    conn_db.execute(copy_sql)
-    logger.info("Backfill successfully completed and saved to MinIO!")
+    # Calculate expected 5-minute timestamps for the last 30 days
+    now = datetime.now(timezone.utc)
+    start_time = now - timedelta(days=30)
     
+    # 5-minute ticks alignment (timestamp should be divisible by 300)
+    start_ts = int(start_time.timestamp() // 300) * 300
+    end_ts = int(now.timestamp() // 300) * 300
+    
+    expected_ts = set(range(start_ts, end_ts, 300))
+    logger.info(f"Calculated {len(expected_ts)} expected 5-minute timestamps from {start_ts} to {end_ts}.")
+
+    # Query existing timestamps in MinIO S3
+    try:
+        existing_res = conn_db.execute(
+            "SELECT DISTINCT timestamp FROM read_parquet('s3://osrs-parquet/ticks/**/*.parquet') WHERE timestamp >= ?",
+            [start_ts]
+        ).fetchall()
+        existing_ts = {r[0] for r in existing_res}
+        logger.info(f"Found {len(existing_ts)} existing timestamps in S3 for the last 30 days.")
+    except Exception as e:
+        logger.warning(f"Error querying existing parquet files from S3: {e}. Assuming no data exists.")
+        existing_ts = set()
+
     conn_db.close()
+
+    # Calculate missing intervals
+    missing_ts = sorted(list(expected_ts - existing_ts))
+    logger.info(f"Total missing timestamps to backfill: {len(missing_ts)}")
+
+    if not missing_ts:
+        logger.info("No gaps in OSRS market data detected. Backfill is fully up to date.")
+        return
+
+    # Process a batch of missing timestamps (limit to 288, which is 1 day's worth)
+    batch_size = 288
+    batch = missing_ts[:batch_size]
+    logger.info(f"Processing batch of {len(batch)} timestamps in this run.")
+
+    headers = {"User-Agent": user_agent}
+    ticks_data = []
+
+    for idx, ts in enumerate(batch):
+        url = f"https://prices.runescape.wiki/api/v1/osrs/5m?timestamp={ts}"
+        logger.info(f"[{idx+1}/{len(batch)}] Fetching OSRS prices for timestamp {ts} ({datetime.fromtimestamp(ts, tz=timezone.utc)})")
+        
+        try:
+            # Respect rate limits: max 1 req/sec
+            time.sleep(1.5)
+            
+            response = requests.get(url, headers=headers, timeout=10)
+            if response.status_code == 404:
+                logger.warning(f"OSRS API returned 404 for timestamp {ts}. Recording dummy row.")
+                data = {}
+            else:
+                response.raise_for_status()
+                payload = response.json()
+                data = payload.get("data", {})
+        except Exception as e:
+            logger.error(f"Failed to fetch OSRS prices for timestamp {ts}: {e}")
+            if getattr(e, 'response', None) is not None and e.response.status_code == 429:
+                logger.error("Hit rate limit 429. Stopping batch fetch early.")
+                break
+            continue
+
+        dt = datetime.fromtimestamp(ts, tz=timezone.utc)
+        year_val = dt.year
+        month_val = dt.month
+        day_val = dt.day
+
+        if not data:
+            # Write a dummy row so we don't retry this timestamp forever
+            ticks_data.append({
+                "item_id": -1,
+                "timestamp": ts,
+                "avg_high_price": None,
+                "high_price_volume": None,
+                "avg_low_price": None,
+                "low_price_volume": None,
+                "year": year_val,
+                "month": month_val,
+                "day": day_val
+            })
+        else:
+            for item_id_str, tick in data.items():
+                try:
+                    item_id = int(item_id_str)
+                    avg_high = tick.get("avgHighPrice")
+                    high_vol = tick.get("highPriceVolume")
+                    avg_low = tick.get("avgLowPrice")
+                    low_vol = tick.get("lowPriceVolume")
+                    
+                    ticks_data.append({
+                        "item_id": item_id,
+                        "timestamp": ts,
+                        "avg_high_price": avg_high,
+                        "high_price_volume": high_vol,
+                        "avg_low_price": avg_low,
+                        "low_price_volume": low_vol,
+                        "year": year_val,
+                        "month": month_val,
+                        "day": day_val
+                    })
+                except Exception as item_ex:
+                    logger.error(f"Failed to parse tick for item {item_id_str} at timestamp {ts}: {item_ex}")
+
+    if not ticks_data:
+        logger.info("No ticks were fetched in this batch.")
+        return
+
+    logger.info(f"Writing {len(ticks_data)} ticks to MinIO using PyArrow...")
+    
+    try:
+        s3_fs = fs.S3FileSystem(
+            endpoint_override=minio_endpoint_clean,
+            access_key=minio_user,
+            secret_key=minio_password,
+            scheme='http'
+        )
+        
+        table = pa.Table.from_pylist(ticks_data)
+        
+        ds.write_dataset(
+            table,
+            base_dir='osrs-parquet/ticks',
+            format='parquet',
+            partitioning=['year', 'month', 'day'],
+            filesystem=s3_fs,
+            existing_data_behavior='overwrite_or_ignore',
+            basename_template=f"backfill_{int(time.time())}_{uuid.uuid4().hex[:8]}_{{i}}.parquet"
+        )
+        logger.info("Successfully wrote batch data to MinIO!")
+    except Exception as pyarrow_ex:
+        logger.error(f"Failed to write to MinIO using PyArrow: {pyarrow_ex}")
+        raise
 
 with DAG(
     'osrs_backfill_30_days',
     default_args=default_args,
-    description='Seeding 30 days of historical price ticks to MinIO',
-    schedule_interval=None, # Manual trigger only
+    description='Incrementally seeding 30 days of historical price ticks from OSRS Wiki API to MinIO',
+    schedule_interval='@hourly',
     catchup=False,
 ) as dag:
 

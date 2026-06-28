@@ -72,9 +72,9 @@ def process_low_priority_stream():
         logger.error(f"Failed to fetch schema: {e}")
         return
 
-    # Poll loop for max 60 seconds
+    # Poll loop until queue is drained (max 240 seconds to fit within 5-min schedule)
     start_time = datetime.now()
-    while (datetime.now() - start_time).total_seconds() < 60:
+    while (datetime.now() - start_time).total_seconds() < 240:
         msg = consumer.poll(timeout=1.0)
         if msg is None:
             # No more messages right now, we can stop the loop and process what we have
