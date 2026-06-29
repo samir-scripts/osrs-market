@@ -26,64 +26,70 @@ async fn top_movers(_data: web::Data<AppState>) -> impl Responder {
 async fn get_item_history(path: web::Path<i64>, query: web::Query<HistoryQuery>, _data: web::Data<AppState>) -> impl Responder {
     let item_id = path.into_inner();
     let days = query.days.unwrap_or(30);
+    
+    // Choose downsampling interval based on time window
+    let interval = if days <= 1 {
+        "5 MINUTE"
+    } else if days <= 7 {
+        "1 HOUR"
+    } else {
+        "4 HOUR"
+    };
 
-    let result = actix_web::web::block(move || {
-        use duckdb::Connection;
-        
-        let conn = Connection::open_in_memory().map_err(|e| e.to_string())?;
-        
-        // Load httpfs and configure MinIO credentials
-        conn.execute_batch(
-            "INSTALL httpfs;
-             LOAD httpfs;
-             SET s3_endpoint='minio:9000';
-             SET s3_access_key_id='minioadmin';
-             SET s3_secret_access_key='minioadmin_secure_pass';
-             SET s3_use_ssl=false;
-             SET s3_region='us-east-1';
-             SET s3_url_style='path';"
-        ).map_err(|e| e.to_string())?;
+    let ch_query = format!(
+        "SELECT 
+            toUnixTimestamp(toStartOfInterval(toDateTime(timestamp), INTERVAL {})) as ts,
+            toUInt64(avg(avg_high_price)) as avgHighPrice,
+            toUInt64(sum(high_price_volume)) as highPriceVolume,
+            toUInt64(avg(avg_low_price)) as avgLowPrice,
+            toUInt64(sum(low_price_volume)) as lowPriceVolume
+         FROM osrs.clean_osrs_prices
+         WHERE item_id = {} 
+           AND timestamp >= toUnixTimestamp(now() - INTERVAL {} DAY)
+         GROUP BY ts
+         ORDER BY ts ASC
+         FORMAT JSON",
+        interval, item_id, days
+    );
 
-        let query = format!(
-            "SELECT timestamp, avg_high_price, high_price_volume, avg_low_price, low_price_volume 
-             FROM read_parquet('s3://osrs-parquet/ticks/**/*.parquet', hive_partitioning=1) 
-             WHERE item_id = {0} AND timestamp >= (
-                 SELECT COALESCE(MAX(timestamp), 0) - {1}
-                 FROM read_parquet('s3://osrs-parquet/ticks/**/*.parquet', hive_partitioning=1) 
-                 WHERE item_id = {0}
-             ) ORDER BY timestamp ASC",
-            item_id, days * 86400
-        );
+    let client = reqwest::Client::new();
+    let resp = client.post("http://clickhouse:8123/")
+        .basic_auth("default", Some("default"))
+        .body(ch_query)
+        .send()
+        .await;
 
-        let mut stmt = conn.prepare(&query).map_err(|e| e.to_string())?;
-        
-        let rows = stmt.query_map([], |row| {
-            Ok(json!({
-                "timestamp": row.get::<_, i64>(0)?,
-                "avgHighPrice": row.get::<_, Option<i64>>(1)?,
-                "highPriceVolume": row.get::<_, Option<i64>>(2)?,
-                "avgLowPrice": row.get::<_, Option<i64>>(3)?,
-                "lowPriceVolume": row.get::<_, Option<i64>>(4)?
-            }))
-        }).map_err(|e| e.to_string())?;
-
-        let mut data = Vec::new();
-        for row in rows {
-            if let Ok(val) = row {
-                data.push(val);
+    match resp {
+        Ok(res) if res.status().is_success() => {
+            if let Ok(json) = res.json::<serde_json::Value>().await {
+                if let Some(data) = json.get("data") {
+                    // ClickHouse JSON format returns rows in "data" array
+                    // Map keys to what the frontend expects
+                    let mut mapped = Vec::new();
+                    if let Some(arr) = data.as_array() {
+                        for row in arr {
+                            mapped.push(json!({
+                                "timestamp": row["ts"],
+                                "avgHighPrice": row["avgHighPrice"],
+                                "highPriceVolume": row["highPriceVolume"],
+                                "avgLowPrice": row["avgLowPrice"],
+                                "lowPriceVolume": row["lowPriceVolume"]
+                            }));
+                        }
+                    }
+                    return HttpResponse::Ok().json(json!({"source": "clickhouse", "data": mapped}));
+                }
             }
-        }
-        
-        Ok::<Vec<serde_json::Value>, String>(data)
-    }).await;
-
-    match result {
-        Ok(Ok(data)) => HttpResponse::Ok().json(json!({"source": "db", "data": data})),
-        Ok(Err(e)) => {
-            log::error!("DuckDB error: {}", e);
-            HttpResponse::Ok().json(json!({"source": "db", "data": []}))
+            HttpResponse::Ok().json(json!({"source": "clickhouse", "data": []}))
         },
-        Err(_) => HttpResponse::Ok().json(json!({"source": "db", "data": []}))
+        Ok(res) => {
+            log::error!("ClickHouse error: {:?}", res.text().await);
+            HttpResponse::Ok().json(json!({"source": "clickhouse", "data": []}))
+        },
+        Err(e) => {
+            log::error!("ClickHouse request failed: {}", e);
+            HttpResponse::Ok().json(json!({"source": "clickhouse", "data": []}))
+        }
     }
 }
 

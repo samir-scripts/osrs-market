@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS public.latest_item_prices (
     item_id INT PRIMARY KEY REFERENCES public.items_metadata(item_id) ON DELETE CASCADE,
     avg_high_price BIGINT,
     avg_low_price BIGINT,
+    previous_avg_high_price BIGINT,
+    previous_avg_low_price BIGINT,
     high_price_volume BIGINT,
     low_price_volume BIGINT,
     moving_avg_1h BIGINT,

@@ -151,6 +151,8 @@ def process_low_priority_stream():
         (item_id, avg_high_price, avg_low_price, high_price_volume, low_price_volume, last_updated)
         VALUES %s
         ON CONFLICT (item_id) DO UPDATE SET
+            previous_avg_high_price = latest_item_prices.avg_high_price,
+            previous_avg_low_price = latest_item_prices.avg_low_price,
             avg_high_price = EXCLUDED.avg_high_price,
             avg_low_price = EXCLUDED.avg_low_price,
             high_price_volume = EXCLUDED.high_price_volume,

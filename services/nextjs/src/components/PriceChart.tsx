@@ -236,20 +236,20 @@ export default function PriceChart() {
                 {/* Price Lines */}
                 <Line
                   yAxisId="price"
-                  type="stepAfter"
+                  type="monotone"
                   dataKey="avg_high_price"
                   name="Avg High Price"
                   stroke={OSRS_CHART_THEME.highPrice}
-                  strokeWidth={2}
+                  strokeWidth={3}
                   dot={false}
                 />
                 <Line
                   yAxisId="price"
-                  type="stepAfter"
+                  type="monotone"
                   dataKey="avg_low_price"
                   name="Avg Low Price"
                   stroke={OSRS_CHART_THEME.lowPrice}
-                  strokeWidth={2}
+                  strokeWidth={3}
                   dot={false}
                 />
               </ComposedChart>

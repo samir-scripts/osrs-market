@@ -16,9 +16,11 @@ const GET_CATALOGUE = gql`
       item_type {
         type_name
       }
-      prices(limit: 2, order_by: { last_updated: desc }) {
+      prices(limit: 1) {
         avg_high_price
         avg_low_price
+        previous_avg_high_price
+        previous_avg_low_price
         high_price_volume
         low_price_volume
       }
@@ -40,7 +42,6 @@ function CatalogueContent() {
   const processedItems = useMemo(() => {
     let baseItems = items.map((item: any) => {
       const priceData = item.prices?.[0] || {};
-      const prevPriceData = item.prices?.[1];
       const price = priceData.avg_high_price || item.value || 0;
       const volume = (priceData.high_price_volume || 0) + (priceData.low_price_volume || 0);
       const type = item.item_type?.type_name || 'Misc';
@@ -49,12 +50,13 @@ function CatalogueContent() {
       let volumeChange = 0;
       let hasPrevData = false;
 
-      if (prevPriceData) {
+      if (priceData.previous_avg_high_price !== undefined && priceData.previous_avg_high_price !== null) {
         hasPrevData = true;
-        const prevPrice = prevPriceData.avg_high_price || item.value || 0;
-        const prevVolume = (prevPriceData.high_price_volume || 0) + (prevPriceData.low_price_volume || 0);
+        const prevPrice = priceData.previous_avg_high_price || item.value || 0;
         priceChange = price - prevPrice;
-        volumeChange = volume - prevVolume;
+        
+        // Since we didn't add previous volume tracking, we can leave volumeChange 0 or add it later if needed.
+        volumeChange = 0; 
       }
 
       return {

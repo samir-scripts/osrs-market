@@ -42,18 +42,45 @@ impl Processor {
             ticks.into_iter().filter(|t| t.avg_high_price.unwrap_or(0) > 0 || t.avg_low_price.unwrap_or(0) > 0).collect()
         }).await?;
 
-        // In a real scenario we'd batch upsert to postgres using self.db_pool
-        // let client = self.db_pool.get().await?;
+        let client = self.db_pool.get().await?;
+        
+        let stmt = client.prepare("
+            INSERT INTO latest_item_prices (
+                item_id, avg_high_price, avg_low_price, high_price_volume, low_price_volume, last_updated
+            ) VALUES ($1, $2, $3, $4, $5, to_timestamp($6))
+            ON CONFLICT (item_id) DO UPDATE SET
+                previous_avg_high_price = latest_item_prices.avg_high_price,
+                previous_avg_low_price = latest_item_prices.avg_low_price,
+                avg_high_price = EXCLUDED.avg_high_price,
+                avg_low_price = EXCLUDED.avg_low_price,
+                high_price_volume = EXCLUDED.high_price_volume,
+                low_price_volume = EXCLUDED.low_price_volume,
+                last_updated = EXCLUDED.last_updated
+        ").await?;
 
-        // Write to Redis cache
+        // Write to Redis cache and Postgres
         let mut conn = cache.manager.clone();
         for tick in &processed_ticks {
+            // Postgres upsert
+            let timestamp_f64 = tick.timestamp as f64;
+            if let Err(e) = client.execute(&stmt, &[
+                &tick.item_id, 
+                &tick.avg_high_price, 
+                &tick.avg_low_price, 
+                &tick.high_price_volume, 
+                &tick.low_price_volume, 
+                &timestamp_f64
+            ]).await {
+                log::error!("Failed to upsert to Postgres for item {}: {}", tick.item_id, e);
+            }
+
+            // Redis set
             let key = format!("item:{}", tick.item_id);
             let val = serde_json::to_string(tick)?;
             let _: () = conn.set_ex(key, val, 300).await?; // 5 mins expiration
         }
 
-        log::info!("Successfully processed and cached {} priority ticks", processed_ticks.len());
+        log::info!("Successfully processed, postgres-synced, and cached {} priority ticks", processed_ticks.len());
         
         Ok(())
     }
