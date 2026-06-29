@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`AlertCreationForm renders correctly with snapshot 1`] = `
+<div>
+  <div
+    style="border-top: 1px solid var(--color-border); padding-top: 12px; margin-top: 12px;"
+  >
+    <h3
+      style="font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 8px;"
+    >
+      SET PRICE ALERT
+    </h3>
+    <form
+      style="display: flex; gap: 6px; flex-direction: column;"
+    >
+      <div
+        style="display: flex; gap: 4px;"
+      >
+        <select
+          class="osrs-input"
+          style="width: 60px;"
+        >
+          <option
+            value=">"
+          >
+            &gt;
+          </option>
+          <option
+            value="<"
+          >
+            &lt;
+          </option>
+          <option
+            value=">="
+          >
+            &gt;=
+          </option>
+          <option
+            value="<="
+          >
+            &lt;=
+          </option>
+        </select>
+        <input
+          class="osrs-input"
+          placeholder="THRESHOLD (GP)"
+          required=""
+          type="number"
+          value=""
+        />
+      </div>
+      <button
+        class="osrs-btn"
+        style="width: 100%;"
+        type="submit"
+      >
+        REGISTER ALERT
+      </button>
+    </form>
+  </div>
+</div>
+`;

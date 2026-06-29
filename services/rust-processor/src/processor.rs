@@ -1,31 +1,22 @@
 use crate::models::OsrsPriceTick;
 use crate::cache::CacheManager;
 use crate::config::Config;
+use crate::repository::PostgresRepository;
 use anyhow::Result;
-use deadpool_postgres::{Pool, Manager, ManagerConfig, RecyclingMethod};
-use tokio_postgres::NoTls;
 use std::sync::Arc;
 use redis::AsyncCommands;
 
 pub struct Processor {
-    db_pool: Pool,
+    postgres: PostgresRepository,
     cache: Arc<CacheManager>,
 }
 
 impl Processor {
     pub async fn new(config: &Config, cache: Arc<CacheManager>) -> Result<Self> {
-        let mgr_config = ManagerConfig {
-            recycling_method: RecyclingMethod::Fast
-        };
-        let connection_string = format!(
-            "host={} user={} password={} dbname={}",
-            config.postgres_host, config.postgres_user, config.postgres_password, config.postgres_db
-        );
-        let mgr = Manager::from_config(connection_string.parse()?, NoTls, mgr_config);
-        let pool = Pool::builder(mgr).max_size(16).build()?;
+        let postgres = PostgresRepository::new(config)?;
         
         Ok(Self {
-            db_pool: pool,
+            postgres,
             cache,
         })
     }
@@ -35,49 +26,43 @@ impl Processor {
             return Ok(());
         }
         
-        let cache = self.cache.clone();
+        // Remove tokio::task::spawn_blocking here because iterating a small vector
+        // and filtering it is very fast and doesn't warrant a blocking thread.
+        let processed_ticks: Vec<OsrsPriceTick> = ticks
+            .into_iter()
+            .filter(|t| t.avg_high_price.unwrap_or(0) > 0 || t.avg_low_price.unwrap_or(0) > 0)
+            .collect();
 
-        // Process in Rayon
-        let processed_ticks: Vec<OsrsPriceTick> = tokio::task::spawn_blocking(move || {
-            ticks.into_iter().filter(|t| t.avg_high_price.unwrap_or(0) > 0 || t.avg_low_price.unwrap_or(0) > 0).collect()
-        }).await?;
+        if processed_ticks.is_empty() {
+            return Ok(());
+        }
 
-        let client = self.db_pool.get().await?;
-        
-        let stmt = client.prepare("
-            INSERT INTO latest_item_prices (
-                item_id, avg_high_price, avg_low_price, high_price_volume, low_price_volume, last_updated
-            ) VALUES ($1, $2, $3, $4, $5, to_timestamp($6))
-            ON CONFLICT (item_id) DO UPDATE SET
-                previous_avg_high_price = latest_item_prices.avg_high_price,
-                previous_avg_low_price = latest_item_prices.avg_low_price,
-                avg_high_price = EXCLUDED.avg_high_price,
-                avg_low_price = EXCLUDED.avg_low_price,
-                high_price_volume = EXCLUDED.high_price_volume,
-                low_price_volume = EXCLUDED.low_price_volume,
-                last_updated = EXCLUDED.last_updated
-        ").await?;
+        // Upsert to Postgres using the repository
+        self.postgres.upsert_ticks(&processed_ticks).await?;
 
-        // Write to Redis cache and Postgres
-        let mut conn = cache.manager.clone();
+        // Write to Redis cache only if genuinely new price data
+        let mut conn = self.cache.manager.clone();
         for tick in &processed_ticks {
-            // Postgres upsert
-            let timestamp_f64 = tick.timestamp as f64;
-            if let Err(e) = client.execute(&stmt, &[
-                &tick.item_id, 
-                &tick.avg_high_price, 
-                &tick.avg_low_price, 
-                &tick.high_price_volume, 
-                &tick.low_price_volume, 
-                &timestamp_f64
-            ]).await {
-                log::error!("Failed to upsert to Postgres for item {}: {}", tick.item_id, e);
+            let key = format!("item:{}", tick.item_id);
+            
+            // Check existing value
+            let existing_val: Option<String> = conn.get(&key).await.unwrap_or(None);
+            let mut should_update = true;
+            
+            if let Some(val) = existing_val {
+                if let Ok(existing_tick) = serde_json::from_str::<OsrsPriceTick>(&val) {
+                    // Check if prices actually changed
+                    if existing_tick.avg_high_price == tick.avg_high_price &&
+                       existing_tick.avg_low_price == tick.avg_low_price {
+                        should_update = false;
+                    }
+                }
             }
 
-            // Redis set
-            let key = format!("item:{}", tick.item_id);
-            let val = serde_json::to_string(tick)?;
-            let _: () = conn.set_ex(key, val, 300).await?; // 5 mins expiration
+            if should_update {
+                let val = serde_json::to_string(tick)?;
+                let _: () = conn.set_ex(key, val, 300).await?; // 5 mins expiration
+            }
         }
 
         log::info!("Successfully processed, postgres-synced, and cached {} priority ticks", processed_ticks.len());

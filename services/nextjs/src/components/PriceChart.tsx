@@ -13,6 +13,8 @@ interface PriceTick {
   low_price_volume: number | null;
 }
 
+import { usePriceHistory } from '../hooks/usePriceHistory';
+
 const OSRS_CHART_THEME = {
   cartesianGrid: { stroke: 'var(--color-border-light)', strokeDasharray: '0' },
   xAxis:         { stroke: 'var(--color-border)', tick: { fill: 'var(--color-text-muted)', fontSize: 11, fontFamily: 'var(--font-jetbrains-mono)' } },
@@ -60,79 +62,13 @@ class ChartErrorBoundary extends React.Component<{ children: React.ReactNode }, 
   }
 }
 
-const historyCache: Record<string, { data: PriceTick[], refreshKey: number }> = {};
-
 export default function PriceChart() {
   const itemId = useStore((state) => state.selectedItemId);
   const itemName = useStore((state) => state.selectedItemName);
-  const refreshKey = useStore((state) => state.refreshKey);
 
-  const [data, setData] = useState<PriceTick[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [daysframe, setDaysframe] = useState(7);
 
-  const prevItemIdRef = useRef<number | null>(null);
-  const prevDaysframeRef = useRef<number>(7);
-
-  const fetchHistory = async (signal: AbortSignal) => {
-    if (!itemId) return;
-
-    const cacheKey = `${itemId}-30`;
-    const cached = historyCache[cacheKey];
-
-    if (cached && cached.refreshKey === refreshKey) {
-      setData(cached.data);
-      setError(null);
-      prevItemIdRef.current = itemId;
-      return;
-    }
-
-    const isNewItem = prevItemIdRef.current !== itemId;
-
-    try {
-      if (isNewItem || data.length === 0) {
-        setLoading(true);
-        setData([]); // Clear old data if changing items to avoid showing wrong chart
-      }
-      const res = await fetch(`/api/analytics/history/${itemId}?days=30`, { signal });
-      if (!res.ok) throw new Error('Failed to fetch price history');
-      const json = await res.json();
-      if (!signal.aborted) {
-        const fetchedData = json.data || [];
-        setData(fetchedData);
-        setError(null);
-        historyCache[cacheKey] = { data: fetchedData, refreshKey };
-        prevItemIdRef.current = itemId;
-      }
-    } catch (err: any) {
-      if (err.name === 'AbortError' || signal.aborted) {
-        return;
-      }
-      setError(err.message || 'Error loading history');
-    } finally {
-      if (!signal.aborted) {
-        setLoading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchHistory(controller.signal);
-    return () => {
-      controller.abort();
-    };
-  }, [itemId, refreshKey]);
-
-  const filteredData = React.useMemo(() => {
-    if (data.length === 0) return [];
-    if (daysframe === 30) return data;
-    
-    const maxTimestamp = Math.max(...data.map(d => d.timestamp));
-    const cutoff = maxTimestamp - (daysframe * 86400);
-    return data.filter(d => d.timestamp >= cutoff);
-  }, [data, daysframe]);
+  const { data: filteredData, loading, error } = usePriceHistory(itemId, daysframe);
 
   const formatDate = (epochSec: number) => {
     const d = new Date(epochSec * 1000);

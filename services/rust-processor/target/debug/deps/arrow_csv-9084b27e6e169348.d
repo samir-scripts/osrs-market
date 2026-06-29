@@ -1,0 +1,8 @@
+/Users/samirkatakamsetty/Desktop/Home/Data Engineering Projects/osrs-market/services/rust-processor/target/debug/deps/arrow_csv-9084b27e6e169348.d: /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-csv-50.0.0/src/lib.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-csv-50.0.0/src/reader/mod.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-csv-50.0.0/src/reader/records.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-csv-50.0.0/src/writer.rs
+
+/Users/samirkatakamsetty/Desktop/Home/Data Engineering Projects/osrs-market/services/rust-processor/target/debug/deps/libarrow_csv-9084b27e6e169348.rmeta: /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-csv-50.0.0/src/lib.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-csv-50.0.0/src/reader/mod.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-csv-50.0.0/src/reader/records.rs /Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-csv-50.0.0/src/writer.rs
+
+/Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-csv-50.0.0/src/lib.rs:
+/Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-csv-50.0.0/src/reader/mod.rs:
+/Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-csv-50.0.0/src/reader/records.rs:
+/Users/samirkatakamsetty/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-csv-50.0.0/src/writer.rs:

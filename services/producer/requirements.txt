@@ -9,3 +9,7 @@ authlib>=1.2.0
 cachetools>=5.3.0
 pytz>=2023.3
 attrs>=21.0.0
+pytest>=7.4.0
+pytest-asyncio>=0.21.1
+pytest-mock>=3.11.1
+requests-mock>=1.11.0

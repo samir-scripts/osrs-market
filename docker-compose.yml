@@ -296,6 +296,9 @@ services:
       MAX_UPLOAD_CONCURRENCY: ${MAX_UPLOAD_CONCURRENCY}
       PRIORITY_PRICE_THRESHOLD: ${PRIORITY_PRICE_THRESHOLD}
       PRIORITY_VOLUME_THRESHOLD: ${PRIORITY_VOLUME_THRESHOLD}
+      CLICKHOUSE_URL: http://clickhouse:8123/
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: default
     depends_on:
       redis:
         condition: service_healthy

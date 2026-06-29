@@ -11,4 +11,21 @@ impl CacheManager {
         let manager = ConnectionManager::new(client).await?;
         Ok(Self { manager })
     }
+
+    pub async fn get(&self, key: &str) -> anyhow::Result<Option<String>> {
+        use redis::AsyncCommands;
+        let mut conn = self.manager.clone();
+        let value: Option<String> = conn.get(key).await?;
+        Ok(value)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    // Add simple test stub
+    #[test]
+    fn test_cache_placeholder() {
+        assert!(true);
+    }
 }

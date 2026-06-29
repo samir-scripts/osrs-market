@@ -5,6 +5,7 @@ mod minio_writer;
 mod processor;
 mod kafka_consumer;
 mod api;
+mod repository;
 
 use std::sync::Arc;
 
@@ -37,7 +38,7 @@ async fn main() -> anyhow::Result<()> {
     });
 
     // Run Actix-web server
-    api::run_server(cache).await?;
+    api::run_server(cache, config.clone()).await?;
 
     Ok(())
 }

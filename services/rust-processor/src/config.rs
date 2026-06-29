@@ -17,6 +17,9 @@ pub struct Config {
     pub max_upload_concurrency: usize,
     pub priority_price_threshold: i64,
     pub priority_volume_threshold: i64,
+    pub clickhouse_url: String,
+    pub clickhouse_user: String,
+    pub clickhouse_password: String,
 }
 
 impl Config {

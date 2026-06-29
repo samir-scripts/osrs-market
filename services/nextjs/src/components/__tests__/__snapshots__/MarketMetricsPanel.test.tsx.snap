@@ -1,0 +1,97 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`MarketMetricsPanel renders correctly with snapshot 1`] = `
+<div>
+  <div
+    style="display: flex; flex-direction: column; height: 100%; justify-content: space-between;"
+  >
+    <div>
+      <div
+        style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;"
+      >
+        <img
+          alt="Cannonball"
+          class="item-icon item-icon-lg"
+          src="https://chisel.weirdgloop.org/static/img/osrs-sprite/2.png"
+        />
+        <h2
+          style="font-size: 16px; color: var(--color-text); margin: 0px;"
+        >
+          CANNONBALL
+        </h2>
+      </div>
+      <div>
+        <div
+          style="display: flex; justify-content: space-between; padding: 6px 0px; border-bottom: 1px solid var(--color-border-light);"
+        >
+          <span
+            style="color: var(--color-text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;"
+          >
+            Average High Price
+          </span>
+          <span
+            class="text-positive"
+            style="font-weight: bold;"
+          >
+            150 gp
+          </span>
+        </div>
+        <div
+          style="display: flex; justify-content: space-between; padding: 6px 0px; border-bottom: 1px solid var(--color-border-light);"
+        >
+          <span
+            style="color: var(--color-text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;"
+          >
+            Average Low Price
+          </span>
+          <span
+            class="text-negative"
+            style="font-weight: bold;"
+          >
+            140 gp
+          </span>
+        </div>
+        <div
+          style="display: flex; justify-content: space-between; padding: 6px 0px; border-bottom: 1px solid var(--color-border-light);"
+        >
+          <span
+            style="color: var(--color-text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;"
+          >
+            High Traded Volume
+          </span>
+          <span
+            class=""
+            style="font-weight: bold;"
+          >
+            1,000
+          </span>
+        </div>
+        <div
+          style="display: flex; justify-content: space-between; padding: 6px 0px; border-bottom: 1px solid var(--color-border-light);"
+        >
+          <span
+            style="color: var(--color-text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;"
+          >
+            Low Traded Volume
+          </span>
+          <span
+            class=""
+            style="font-weight: bold;"
+          >
+            500
+          </span>
+        </div>
+        <div
+          style="margin-top: 12px; font-size: 10px; color: var(--color-text-dim); text-align: right;"
+        >
+          UPDATED: 
+          6:00:00 AM
+        </div>
+      </div>
+    </div>
+    <div
+      data-testid="mock-alert-form"
+    />
+  </div>
+</div>
+`;
